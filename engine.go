@@ -12,6 +12,8 @@ const UPDATE_TICK_RATE_MS float64 = 1000.0 / 240.0
 const BOARD_WIDTH = 10
 const BOARD_HEIGHT = 22
 
+const INITIAL_FALL_RATE = 60
+
 func IsRune(ev *tcell.EventKey, r rune) bool {
 	return (ev.Key() == tcell.KeyRune && ev.Rune() == r)
 }
@@ -27,6 +29,10 @@ type EngineState struct {
 	currentPieceX int
 	currentPieceY int
 	currentPieceRotation int
+	hardDropHeight int
+
+	gravityTimer int
+	fallRate int
 
 	rand *rand.Rand
 }
@@ -40,7 +46,10 @@ func InitEngineState() *EngineState {
 		rand: rand,
 		currentPieceX: BOARD_WIDTH/2,
 		currentPieceY: 3,
+		fallRate: INITIAL_FALL_RATE,
 	}
+
+	es.gravityTimer = es.fallRate
 
 	es.GetRandomPiece()
 
@@ -75,7 +84,11 @@ func (es *EngineState) HandleInput(ev tcell.Event) {
 }
 
 func (es *EngineState) Update() {
-	// Handle input
+	es.gravityTimer -= 1
+	if es.gravityTimer <= 0 {
+		es.gravityTimer = es.fallRate
+		es.SoftDrop()
+	}
 }
 
 func (es *EngineState) Draw(lag float64) {
@@ -108,6 +121,7 @@ func (es *EngineState) Draw(lag float64) {
 		Width:	BOARD_WIDTH,
 		Height: BOARD_HEIGHT,
 	}
+	es.DrawHardDropIndicator(gameArea)
 	es.DrawCurrentPiece(gameArea)
 	es.DrawGrid(gameArea)
 }
@@ -152,6 +166,24 @@ func (es *EngineState) DrawCurrentPiece(rr Area) {
 	}
 }
 
+func (es *EngineState) DrawHardDropIndicator(rr Area) {
+	gridOffsetX := es.currentPieceGrid.Width/2
+	gridOffsetY := es.currentPieceGrid.Height/2
+
+	for yy := 0; yy < es.currentPieceGrid.Height; yy++ {
+		for xx := 0; xx < es.currentPieceGrid.Width; xx++ {
+			if es.currentPieceGrid.MustGet(xx, yy) {
+				color := PieceColors[es.currentPieceIdx]
+				Screen.SetContent(
+					rr.X + xx - gridOffsetX + es.currentPieceX,
+					rr.Y + yy - gridOffsetY + es.hardDropHeight,
+					'+',
+					nil, defStyle.Foreground(color))
+			}
+		}	
+	}
+}
+
 func (es *EngineState) DrawGrid(rr Area) {
 	for yy := 0; yy < es.grid.Height; yy++ {
 		for xx := 0; xx < es.grid.Width; xx++ {
@@ -168,18 +200,30 @@ func (es *EngineState) DrawGrid(rr Area) {
 }
 
 func (es *EngineState) GetRandomPiece() {
-	idx := (es.currentPieceIdx + 1)%7
+	idx := es.rand.Intn(7)
 	es.currentPieceIdx = idx
 	es.currentPieceGrid = Pieces[idx][0]
 	es.currentPieceRotation = 0
 	es.currentPieceX = BOARD_WIDTH/2
 	es.currentPieceY = 1
+
+	es.SetHardDropHeight()
+}
+
+func (es *EngineState) SetHardDropHeight() {
+	yy := es.currentPieceY
+	for !es.CurrentPieceCollides(es.currentPieceX, yy+1) {
+		yy += 1
+	}
+
+	es.hardDropHeight = yy
 }
 
 func (es *EngineState) RotateCW() {
 	rotationLength := len(Pieces[es.currentPieceIdx])
 	es.currentPieceRotation = (es.currentPieceRotation + 1) % rotationLength
 	es.currentPieceGrid = Pieces[es.currentPieceIdx][es.currentPieceRotation]
+	es.SetHardDropHeight()
 }
 
 func (es *EngineState) RotateCCW() {
@@ -189,6 +233,7 @@ func (es *EngineState) RotateCCW() {
 		es.currentPieceRotation = rotationLength - 1
 	}
 	es.currentPieceGrid = Pieces[es.currentPieceIdx][es.currentPieceRotation]
+	es.SetHardDropHeight()
 }
 
 func (es *EngineState) HandleReset() {
@@ -225,6 +270,8 @@ func (es *EngineState) MovePiece(dx int) {
 	}
 
 	es.currentPieceX += dx
+
+	es.SetHardDropHeight()
 }
 
 func (es *EngineState) SoftDrop() {
@@ -258,12 +305,7 @@ func (es *EngineState) PlacePiece() {
 }
 
 func (es *EngineState) HardDrop() {
-	yy := es.currentPieceY
-	for !es.CurrentPieceCollides(es.currentPieceX, yy+1) {
-		yy += 1
-	}
-
-	es.currentPieceY = yy
+	es.currentPieceY = es.hardDropHeight
 	es.PlacePiece()
 }
 
