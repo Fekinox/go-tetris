@@ -39,7 +39,7 @@ func InitEngineState() *EngineState {
 		grid: MakeGrid(BOARD_WIDTH, BOARD_HEIGHT, 0),
 		rand: rand,
 		currentPieceX: BOARD_WIDTH/2,
-		currentPieceY: 2,
+		currentPieceY: 3,
 	}
 
 	es.GetRandomPiece()
@@ -168,7 +168,7 @@ func (es *EngineState) DrawGrid(rr Area) {
 }
 
 func (es *EngineState) GetRandomPiece() {
-	idx := es.rand.Intn(7)
+	idx := (es.currentPieceIdx + 1)%7
 	es.currentPieceIdx = idx
 	es.currentPieceGrid = Pieces[idx][0]
 	es.currentPieceRotation = 0
@@ -254,12 +254,17 @@ func (es *EngineState) PlacePiece() {
 	}
 
 	es.ClearLines()
-
 	es.GetRandomPiece()
 }
 
 func (es *EngineState) HardDrop() {
-	
+	yy := es.currentPieceY
+	for !es.CurrentPieceCollides(es.currentPieceX, yy+1) {
+		yy += 1
+	}
+
+	es.currentPieceY = yy
+	es.PlacePiece()
 }
 
 func (es *EngineState) ClearLines() {

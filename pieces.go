@@ -120,7 +120,7 @@ var (
 var Pieces = [][]Grid[bool]{
 	IPieces,
 	JPieces,
-	ZPieces,
+	LPieces,
 	OPieces,
 	SPieces,
 	TPieces,
@@ -133,7 +133,7 @@ var PieceColors = []tcell.Color{
 	// J
 	tcell.ColorBlue,
 	// L
-	tcell.ColorOlive,
+	tcell.ColorWhite,
 	// O
 	tcell.ColorYellow,
 	// S
