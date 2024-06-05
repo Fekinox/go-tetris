@@ -1,5 +1,7 @@
 package main
 
+import "github.com/gdamore/tcell/v2"
+
 var (
 	IPieces = []Grid[bool]{
 		GridFromSlice(4, 4,
@@ -123,4 +125,21 @@ var Pieces = [][]Grid[bool]{
 	SPieces,
 	TPieces,
 	ZPieces,
+}
+
+var PieceColors = []tcell.Color{
+	// I
+	tcell.ColorAqua,
+	// J
+	tcell.ColorBlue,
+	// L
+	tcell.ColorOlive,
+	// O
+	tcell.ColorYellow,
+	// S
+	tcell.ColorLime,
+	// T
+	tcell.ColorPurple,
+	// Z
+	tcell.ColorRed,
 }

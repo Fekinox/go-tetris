@@ -141,11 +141,12 @@ func (es *EngineState) DrawCurrentPiece(rr Area) {
 	for yy := 0; yy < es.currentPieceGrid.Height; yy++ {
 		for xx := 0; xx < es.currentPieceGrid.Width; xx++ {
 			if es.currentPieceGrid.MustGet(xx, yy) {
+				color := PieceColors[es.currentPieceIdx]
 				Screen.SetContent(
 					rr.X + xx - gridOffsetX + es.currentPieceX,
 					rr.Y + yy - gridOffsetY + es.currentPieceY,
-					'#',
-					nil, defStyle)
+					' ',
+					nil, defStyle.Background(color))
 			}
 		}	
 	}
@@ -155,11 +156,12 @@ func (es *EngineState) DrawGrid(rr Area) {
 	for yy := 0; yy < es.grid.Height; yy++ {
 		for xx := 0; xx < es.grid.Width; xx++ {
 			if es.grid.MustGet(xx, yy) != 0 {
+				color := PieceColors[es.grid.MustGet(xx, yy)-1]
 				Screen.SetContent(
 					rr.X + xx,
 					rr.Y + yy,
-					'#',
-					nil, defStyle)
+					' ',
+					nil, defStyle.Background(color))
 			}
 		}	
 	}
@@ -251,9 +253,41 @@ func (es *EngineState) PlacePiece() {
 		}	
 	}
 
+	es.ClearLines()
+
 	es.GetRandomPiece()
 }
 
 func (es *EngineState) HardDrop() {
 	
+}
+
+func (es *EngineState) ClearLines() {
+	lines := make([]int, 0)
+	for y := 0; y < es.grid.Height; y++ {
+		fullLine := true
+		notFullLine:
+		for x := 0; x < es.grid.Width; x++ {
+			if es.grid.MustGet(x, y) == 0 {
+				fullLine = false
+				break notFullLine;
+			}
+		}	
+
+		if fullLine {
+			lines = append(lines, y)
+		}
+	}
+
+	for _, lidx := range lines {
+		for y := lidx; y >= 0; y-- {
+			for x := 0; x < es.grid.Width; x++ {
+				if y == 0 {
+					es.grid.Set(x, y, 0)
+				} else {
+					es.grid.Set(x, y, es.grid.MustGet(x, y-1))
+				}
+			}
+		}
+	}
 }
