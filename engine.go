@@ -19,6 +19,13 @@ func IsRune(ev *tcell.EventKey, r rune) bool {
 	return (ev.Key() == tcell.KeyRune && ev.Rune() == r)
 }
 
+func IsDigitRune(ev *tcell.EventKey) bool {
+	if ev.Key() != tcell.KeyRune {
+		return false
+	}
+	return ev.Rune() >= '0' && ev.Rune() <= '9'
+}
+
 type EngineState struct {
 	LastRenderDuration float64
 	LastUpdateDuration float64
@@ -42,6 +49,10 @@ type EngineState struct {
 
 	holdPiece     int
 	usedHoldPiece bool
+
+	moveMultiplier    int
+	leftSnapPosition  int
+	rightSnapPosition int
 }
 
 func InitEngineState() *EngineState {
@@ -80,6 +91,10 @@ func (es *EngineState) HandleInput(ev tcell.Event) {
 		}
 		if IsRune(ev, 'z') || IsRune(ev, 'Z') {
 			es.RotateCCW()
+		} else if IsRune(ev, '$') {
+			es.SetMoveMultiplier(10)
+		} else if IsDigitRune(ev) {
+			es.SetMoveMultiplier(int(ev.Rune() - '0'))
 		} else if ev.Key() == tcell.KeyDown || IsRune(ev, 'j') || IsRune(ev, 'J') {
 			es.SoftDrop()
 		} else if ev.Key() == tcell.KeyLeft || IsRune(ev, 'h') || IsRune(ev, 'H') {
@@ -101,7 +116,7 @@ func (es *EngineState) Update() {
 	es.gravityTimer -= 1
 	if es.gravityTimer <= 0 {
 		es.gravityTimer = es.fallRate
-		es.SoftDrop()
+		es.GravityDrop()
 	}
 }
 
@@ -142,16 +157,16 @@ func (es *EngineState) Draw(lag float64) {
 	// Hard drop indicator
 	es.DrawPiece(
 		es.currentPieceGrid,
-		gameArea.X + es.currentPieceX - gridOffsetX,
-		gameArea.Y + es.hardDropHeight - gridOffsetY,
+		gameArea.X+es.currentPieceX-gridOffsetX,
+		gameArea.Y+es.hardDropHeight-gridOffsetY,
 		'+',
 		LightPieceStyle(es.currentPieceIdx),
 	)
 
 	es.DrawPiece(
 		es.currentPieceGrid,
-		gameArea.X + es.currentPieceX - gridOffsetX,
-		gameArea.Y + es.currentPieceY - gridOffsetY,
+		gameArea.X+es.currentPieceX-gridOffsetX,
+		gameArea.Y+es.currentPieceY-gridOffsetY,
 		'o',
 		SolidPieceStyle(es.currentPieceIdx),
 	)
@@ -218,13 +233,13 @@ func (es *EngineState) DrawNextAndHoldPieces(rr Area) {
 	}
 
 	for i := 0; i < NUM_NEXT_PIECES; i++ {
-		px := rr.X 
-		py := rr.Y + (i + 1) * 4
+		px := rr.X
+		py := rr.Y + (i+1)*4
 		es.DrawPiece(
 			Pieces[es.nextPieces[i]][0],
 			px, py,
 			'o',
-		SolidPieceStyle(es.nextPieces[i]))
+			SolidPieceStyle(es.nextPieces[i]))
 	}
 }
 
@@ -265,50 +280,102 @@ func (es *EngineState) GetRandomPiece() {
 	es.nextPieces[NUM_NEXT_PIECES-2] = es.pieceGenerator.NextPiece()
 
 	es.SetHardDropHeight()
+	es.moveMultiplier = 0
 }
 
-func (es *EngineState) SetHardDropHeight() {
-	yy := es.currentPieceY
-	for !es.CheckCollision(es.currentPieceGrid, es.currentPieceX, yy+1) {
-		yy += 1
+func (es *EngineState) SetMoveMultiplier(val int) {
+	if val == 0 || val == es.moveMultiplier {
+		es.moveMultiplier = 0
+	} else if val == 10 {
+		es.moveMultiplier = 10
+	} else {
+		es.moveMultiplier = val
 	}
 
-	es.hardDropHeight = yy
+	if es.moveMultiplier != 0 {
+		es.SetSnapPositions(es.moveMultiplier)
+	}
 }
 
 func (es *EngineState) RotateCW() {
+	var count int
+	dirty := true
+
+	if es.moveMultiplier == 0 {
+		count = 1
+		dirty = false
+	} else if es.moveMultiplier == 10 {
+		count = 1
+	} else {
+		count = es.moveMultiplier % 4
+	}
+
 	rotationLength := len(Pieces[es.currentPieceIdx])
-	newRotation := (es.currentPieceRotation + 1) % rotationLength
-	if es.CheckCollision(
-		Pieces[es.currentPieceIdx][newRotation],
-		es.currentPieceX,
-		es.currentPieceY,
-	) {
-		return
+	newRotation := es.currentPieceRotation
+
+	for i := 0; i < count; i++ {
+		newRotation = (newRotation + 1) % rotationLength
+
+		if newRotation < 0 {
+			newRotation = rotationLength - 1
+		}
+
+		if es.CheckCollision(
+			Pieces[es.currentPieceIdx][newRotation],
+			es.currentPieceX,
+			es.currentPieceY,
+		) {
+			break
+		}
 	}
 
 	es.currentPieceRotation = newRotation
 	es.currentPieceGrid = Pieces[es.currentPieceIdx][es.currentPieceRotation]
 	es.SetHardDropHeight()
+
+	if dirty {
+		es.moveMultiplier = 0
+	}
 }
 
 func (es *EngineState) RotateCCW() {
-	rotationLength := len(Pieces[es.currentPieceIdx])
-	newRotation := es.currentPieceRotation - 1
-	if newRotation < 0 {
-		newRotation = rotationLength - 1
+	var count int
+	dirty := true
+
+	if es.moveMultiplier == 0 {
+		count = 1
+		dirty = false
+	} else if es.moveMultiplier == 10 {
+		count = 1
+	} else {
+		count = es.moveMultiplier % 4
 	}
-	if es.CheckCollision(
-		Pieces[es.currentPieceIdx][newRotation],
-		es.currentPieceX,
-		es.currentPieceY,
-	) {
-		return
+
+	rotationLength := len(Pieces[es.currentPieceIdx])
+	newRotation := es.currentPieceRotation
+	for i := 0; i < count; i++ {
+		newRotation = newRotation - 1
+
+		if newRotation < 0 {
+			newRotation = rotationLength - 1
+		}
+
+		if es.CheckCollision(
+			Pieces[es.currentPieceIdx][newRotation],
+			es.currentPieceX,
+			es.currentPieceY,
+		) {
+			break
+		}
 	}
 
 	es.currentPieceRotation = newRotation
 	es.currentPieceGrid = Pieces[es.currentPieceIdx][es.currentPieceRotation]
 	es.SetHardDropHeight()
+
+	if dirty {
+		es.moveMultiplier = 0
+	}
 }
 
 func (es *EngineState) HandleReset() {
@@ -316,27 +383,17 @@ func (es *EngineState) HandleReset() {
 	es.GetRandomPiece()
 }
 
-func (es *EngineState) CheckCollision(piece Grid[bool], px, py int) bool {
-	gridOffsetX := piece.Width / 2
-	gridOffsetY := piece.Height / 2
-
-	for yy := 0; yy < piece.Height; yy++ {
-		for xx := 0; xx < piece.Width; xx++ {
-			if piece.MustGet(xx, yy) {
-				currX := xx - gridOffsetX + px
-				currY := yy - gridOffsetY + py
-				cell, ok := es.grid.Get(currX, currY)
-				if !ok || cell != 0 {
-					return true
-				}
-			}
-		}
-	}
-
-	return false
-}
-
 func (es *EngineState) MovePiece(dx int) {
+	if es.moveMultiplier != 0 {
+		if dx < 0 {
+			es.currentPieceX = es.leftSnapPosition
+		} else {
+			es.currentPieceX = es.rightSnapPosition
+		}
+
+		es.moveMultiplier = 0
+		es.SetHardDropHeight()
+	}
 	if es.CheckCollision(
 		es.currentPieceGrid,
 		es.currentPieceX+dx,
@@ -361,6 +418,26 @@ func (es *EngineState) SoftDrop() {
 	}
 
 	es.currentPieceY += 1
+	es.gravityTimer = es.fallRate
+
+	es.moveMultiplier = 0
+}
+
+func (es *EngineState) GravityDrop() {
+	if es.CheckCollision(
+		es.currentPieceGrid,
+		es.currentPieceX,
+		es.currentPieceY+1,
+	) {
+		es.LockPiece()
+		return
+	}
+
+	es.currentPieceY += 1
+
+	if es.moveMultiplier != 0 {
+		es.SetSnapPositions(es.moveMultiplier)
+	}
 }
 
 func (es *EngineState) HardDrop() {
@@ -370,7 +447,9 @@ func (es *EngineState) HardDrop() {
 }
 
 func (es *EngineState) SwapHoldPiece() {
-	if es.usedHoldPiece { return }
+	if es.usedHoldPiece {
+		return
+	}
 	tmp := es.holdPiece
 	es.holdPiece = es.currentPieceIdx
 	es.currentPieceIdx = tmp
@@ -385,6 +464,26 @@ func (es *EngineState) SwapHoldPiece() {
 	}
 
 	es.usedHoldPiece = true
+}
+
+func (es *EngineState) CheckCollision(piece Grid[bool], px, py int) bool {
+	gridOffsetX := piece.Width / 2
+	gridOffsetY := piece.Height / 2
+
+	for yy := 0; yy < piece.Height; yy++ {
+		for xx := 0; xx < piece.Width; xx++ {
+			if piece.MustGet(xx, yy) {
+				currX := xx - gridOffsetX + px
+				currY := yy - gridOffsetY + py
+				cell, ok := es.grid.Get(currX, currY)
+				if !ok || cell != 0 {
+					return true
+				}
+			}
+		}
+	}
+
+	return false
 }
 
 func (es *EngineState) LockPiece() {
@@ -404,6 +503,33 @@ func (es *EngineState) LockPiece() {
 	es.usedHoldPiece = false
 	es.ClearLines()
 	es.GetRandomPiece()
+}
+
+func (es *EngineState) SetHardDropHeight() {
+	yy := es.currentPieceY
+	for !es.CheckCollision(es.currentPieceGrid, es.currentPieceX, yy+1) {
+		yy += 1
+	}
+
+	es.hardDropHeight = yy
+}
+
+func (es *EngineState) SetSnapPositions(distance int) {
+	l := es.currentPieceX
+	r := es.currentPieceX
+
+	for lCount := 0; (distance == 10 || lCount < distance) &&
+		!es.CheckCollision(es.currentPieceGrid, l-1, es.currentPieceY); lCount++ {
+		l -= 1
+	}
+
+	for rCount := 0; (distance == 10 || rCount < distance) &&
+		!es.CheckCollision(es.currentPieceGrid, r+1, es.currentPieceY); rCount++ {
+		r += 1
+	}
+
+	es.leftSnapPosition = l
+	es.rightSnapPosition = r
 }
 
 func (es *EngineState) ClearLines() {
