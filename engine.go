@@ -32,20 +32,20 @@ type EngineState struct {
 
 	grid Grid[int]
 
-	currentPieceIdx      int
-	currentPieceGrid     Grid[bool]
-	currentPieceX        int
-	currentPieceY        int
-	currentPieceRotation int
-	hardDropHeight       int
+	cpIdx  int
+	cpGrid Grid[bool]
+	cpX    int
+	cpY    int
+	cpRot  int
 
 	gravityTimer int
 	fallRate     int
 
 	pieceGenerator PieceGenerator
 
-	nextPieces        []int
-	hardDropParticles ParticleSystem
+	nextPieces []int
+
+	dashParticles ParticleSystem
 
 	holdPiece     int
 	usedHoldPiece bool
@@ -55,6 +55,7 @@ type EngineState struct {
 	rightSnapPosition       int
 	hardDropLeftSnapHeight  int
 	hardDropRightSnapHeight int
+	hardDropHeight          int
 }
 
 func InitEngineState() *EngineState {
@@ -64,15 +65,15 @@ func InitEngineState() *EngineState {
 
 		grid:           MakeGrid(BOARD_WIDTH, BOARD_HEIGHT, 0),
 		pieceGenerator: &gen,
-		currentPieceX:  BOARD_WIDTH / 2,
-		currentPieceY:  3,
+		cpX:            BOARD_WIDTH / 2,
+		cpY:            3,
 		fallRate:       INITIAL_FALL_RATE,
 		nextPieces:     make([]int, NUM_NEXT_PIECES),
 		holdPiece:      8,
 	}
 
 	es.gravityTimer = es.fallRate
-	es.hardDropParticles = InitParticles(0.1)
+	es.dashParticles = InitParticles(0.1)
 
 	es.FillNextPieces()
 	es.GetRandomPiece()
@@ -114,7 +115,7 @@ func (es *EngineState) HandleInput(ev tcell.Event) {
 }
 
 func (es *EngineState) Update() {
-	es.hardDropParticles.Update()
+	es.dashParticles.Update()
 	es.gravityTimer -= 1
 	if es.gravityTimer <= 0 {
 		es.gravityTimer = es.fallRate
@@ -152,58 +153,58 @@ func (es *EngineState) Draw(lag float64) {
 		Width:  BOARD_WIDTH,
 		Height: BOARD_HEIGHT,
 	}
-	es.hardDropParticles.Draw(gameArea)
-	gridOffsetX := es.currentPieceGrid.Width / 2
-	gridOffsetY := es.currentPieceGrid.Height / 2
+	es.dashParticles.Draw(gameArea)
+	gridOffsetX := es.cpGrid.Width / 2
+	gridOffsetY := es.cpGrid.Height / 2
 
 	// Hard drop indicator
 	es.DrawPiece(
-		es.currentPieceGrid,
-		gameArea.X+es.currentPieceX-gridOffsetX,
+		es.cpGrid,
+		gameArea.X+es.cpX-gridOffsetX,
 		gameArea.Y+es.hardDropHeight-gridOffsetY,
 		'+',
-		LightPieceStyle(es.currentPieceIdx),
+		LightPieceStyle(es.cpIdx),
 	)
 
 	// Snap indicators
 	if es.moveMultiplier != 0 {
 		es.DrawPiece(
-			es.currentPieceGrid,
+			es.cpGrid,
 			gameArea.X+es.leftSnapPosition-gridOffsetX,
-			gameArea.Y+es.currentPieceY-gridOffsetY,
+			gameArea.Y+es.cpY-gridOffsetY,
 			'*',
-			LightPieceStyle(es.currentPieceIdx),
+			LightPieceStyle(es.cpIdx),
 		)
 		es.DrawPiece(
-			es.currentPieceGrid,
+			es.cpGrid,
 			gameArea.X+es.rightSnapPosition-gridOffsetX,
-			gameArea.Y+es.currentPieceY-gridOffsetY,
+			gameArea.Y+es.cpY-gridOffsetY,
 			'*',
-			LightPieceStyle(es.currentPieceIdx),
+			LightPieceStyle(es.cpIdx),
 		)
 		// Hard drop snap indicators
 		es.DrawPiece(
-			es.currentPieceGrid,
+			es.cpGrid,
 			gameArea.X+es.leftSnapPosition-gridOffsetX,
 			gameArea.Y+es.hardDropLeftSnapHeight-gridOffsetY,
 			'.',
-			LightPieceStyle(es.currentPieceIdx),
+			LightPieceStyle(es.cpIdx),
 		)
 		es.DrawPiece(
-			es.currentPieceGrid,
+			es.cpGrid,
 			gameArea.X+es.rightSnapPosition-gridOffsetX,
 			gameArea.Y+es.hardDropRightSnapHeight-gridOffsetY,
 			'.',
-			LightPieceStyle(es.currentPieceIdx),
+			LightPieceStyle(es.cpIdx),
 		)
 	}
 
 	es.DrawPiece(
-		es.currentPieceGrid,
-		gameArea.X+es.currentPieceX-gridOffsetX,
-		gameArea.Y+es.currentPieceY-gridOffsetY,
+		es.cpGrid,
+		gameArea.X+es.cpX-gridOffsetX,
+		gameArea.Y+es.cpY-gridOffsetY,
 		'o',
-		SolidPieceStyle(es.currentPieceIdx),
+		SolidPieceStyle(es.cpIdx),
 	)
 
 	es.DrawGrid(gameArea)
@@ -303,11 +304,11 @@ func (es *EngineState) FillNextPieces() {
 
 func (es *EngineState) GetRandomPiece() {
 	idx := es.nextPieces[0]
-	es.currentPieceIdx = idx
-	es.currentPieceGrid = Pieces[idx][0]
-	es.currentPieceRotation = 0
-	es.currentPieceX = BOARD_WIDTH / 2
-	es.currentPieceY = 1
+	es.cpIdx = idx
+	es.cpGrid = Pieces[idx][0]
+	es.cpRot = 0
+	es.cpX = BOARD_WIDTH / 2
+	es.cpY = 1
 
 	for i := 0; i < NUM_NEXT_PIECES-1; i++ {
 		es.nextPieces[i] = es.nextPieces[i+1]
@@ -333,19 +334,19 @@ func (es *EngineState) SetMoveMultiplier(val int) {
 }
 
 func (es *EngineState) RotateCW() {
-	rotationLength := len(Pieces[es.currentPieceIdx])
-	newRotation := (es.currentPieceRotation + 1) % rotationLength
+	rotationLength := len(Pieces[es.cpIdx])
+	newRotation := (es.cpRot + 1) % rotationLength
 
 	if es.CheckCollision(
-		Pieces[es.currentPieceIdx][newRotation],
-		es.currentPieceX,
-		es.currentPieceY,
+		Pieces[es.cpIdx][newRotation],
+		es.cpX,
+		es.cpY,
 	) {
 		return
 	}
 
-	es.currentPieceRotation = newRotation
-	es.currentPieceGrid = Pieces[es.currentPieceIdx][es.currentPieceRotation]
+	es.cpRot = newRotation
+	es.cpGrid = Pieces[es.cpIdx][es.cpRot]
 	es.SetHardDropHeight()
 
 	if es.moveMultiplier != 0 {
@@ -355,23 +356,23 @@ func (es *EngineState) RotateCW() {
 
 func (es *EngineState) RotateCCW() {
 
-	rotationLength := len(Pieces[es.currentPieceIdx])
-	newRotation := es.currentPieceRotation - 1
+	rotationLength := len(Pieces[es.cpIdx])
+	newRotation := es.cpRot - 1
 
 	if newRotation < 0 {
 		newRotation = rotationLength - 1
 	}
 
 	if es.CheckCollision(
-		Pieces[es.currentPieceIdx][newRotation],
-		es.currentPieceX,
-		es.currentPieceY,
+		Pieces[es.cpIdx][newRotation],
+		es.cpX,
+		es.cpY,
 	) {
 		return
 	}
 
-	es.currentPieceRotation = newRotation
-	es.currentPieceGrid = Pieces[es.currentPieceIdx][es.currentPieceRotation]
+	es.cpRot = newRotation
+	es.cpGrid = Pieces[es.cpIdx][es.cpRot]
 	es.SetHardDropHeight()
 
 	if es.moveMultiplier != 0 {
@@ -387,9 +388,19 @@ func (es *EngineState) HandleReset() {
 func (es *EngineState) MovePiece(dx int) {
 	if es.moveMultiplier != 0 {
 		if dx < 0 {
-			es.currentPieceX = es.leftSnapPosition
+			es.LeftDashParticles(
+				es.cpGrid,
+				es.cpIdx,
+				es.cpY,
+				es.cpX, es.leftSnapPosition)
+			es.cpX = es.leftSnapPosition
 		} else {
-			es.currentPieceX = es.rightSnapPosition
+			es.RightDashParticles(
+				es.cpGrid,
+				es.cpIdx,
+				es.cpY,
+				es.cpX, es.rightSnapPosition)
+			es.cpX = es.rightSnapPosition
 		}
 
 		es.moveMultiplier = 0
@@ -397,49 +408,55 @@ func (es *EngineState) MovePiece(dx int) {
 		return
 	}
 	if es.CheckCollision(
-		es.currentPieceGrid,
-		es.currentPieceX+dx,
-		es.currentPieceY,
+		es.cpGrid,
+		es.cpX+dx,
+		es.cpY,
 	) {
 		return
 	}
 
-	es.currentPieceX += dx
+	es.cpX += dx
 
 	es.SetHardDropHeight()
 }
 
 func (es *EngineState) SoftDrop() {
 	if es.moveMultiplier == 10 {
-		es.currentPieceY = es.hardDropHeight
+		es.DownDashParticles(
+			es.cpGrid,
+			es.cpIdx,
+			es.cpX,
+			es.cpY, es.hardDropHeight,
+		)
+		es.cpY = es.hardDropHeight
 		es.moveMultiplier = 0
 		es.gravityTimer = es.fallRate
 		return
 	}
 	if es.CheckCollision(
-		es.currentPieceGrid,
-		es.currentPieceX,
-		es.currentPieceY+1,
+		es.cpGrid,
+		es.cpX,
+		es.cpY+1,
 	) {
 		es.LockPiece()
 		return
 	}
 
-	es.currentPieceY += 1
+	es.cpY += 1
 	es.gravityTimer = es.fallRate
 }
 
 func (es *EngineState) GravityDrop() {
 	if es.CheckCollision(
-		es.currentPieceGrid,
-		es.currentPieceX,
-		es.currentPieceY+1,
+		es.cpGrid,
+		es.cpX,
+		es.cpY+1,
 	) {
 		es.LockPiece()
 		return
 	}
 
-	es.currentPieceY += 1
+	es.cpY += 1
 
 	if es.moveMultiplier != 0 {
 		es.SetSnapPositions(es.moveMultiplier)
@@ -447,8 +464,13 @@ func (es *EngineState) GravityDrop() {
 }
 
 func (es *EngineState) HardDrop() {
-	es.SpawnHardDropParticles(es.currentPieceY, es.hardDropHeight)
-	es.currentPieceY = es.hardDropHeight
+	es.DownDashParticles(
+		es.cpGrid,
+		es.cpIdx,
+		es.cpX,
+		es.cpY, es.hardDropHeight,
+	)
+	es.cpY = es.hardDropHeight
 	es.LockPiece()
 }
 
@@ -457,15 +479,15 @@ func (es *EngineState) SwapHoldPiece() {
 		return
 	}
 	tmp := es.holdPiece
-	es.holdPiece = es.currentPieceIdx
-	es.currentPieceIdx = tmp
-	if es.currentPieceIdx == 8 {
+	es.holdPiece = es.cpIdx
+	es.cpIdx = tmp
+	if es.cpIdx == 8 {
 		es.GetRandomPiece()
 	} else {
-		es.currentPieceGrid = Pieces[es.currentPieceIdx][0]
-		es.currentPieceRotation = 0
-		es.currentPieceX = BOARD_WIDTH / 2
-		es.currentPieceY = 1
+		es.cpGrid = Pieces[es.cpIdx][0]
+		es.cpRot = 0
+		es.cpX = BOARD_WIDTH / 2
+		es.cpY = 1
 		es.SetHardDropHeight()
 		es.moveMultiplier = 0
 	}
@@ -494,15 +516,15 @@ func (es *EngineState) CheckCollision(piece Grid[bool], px, py int) bool {
 }
 
 func (es *EngineState) LockPiece() {
-	gridOffsetX := es.currentPieceGrid.Width / 2
-	gridOffsetY := es.currentPieceGrid.Height / 2
+	gridOffsetX := es.cpGrid.Width / 2
+	gridOffsetY := es.cpGrid.Height / 2
 
-	for yy := 0; yy < es.currentPieceGrid.Height; yy++ {
-		for xx := 0; xx < es.currentPieceGrid.Width; xx++ {
-			if es.currentPieceGrid.MustGet(xx, yy) {
-				currX := xx - gridOffsetX + es.currentPieceX
-				currY := yy - gridOffsetY + es.currentPieceY
-				es.grid.Set(currX, currY, es.currentPieceIdx+1)
+	for yy := 0; yy < es.cpGrid.Height; yy++ {
+		for xx := 0; xx < es.cpGrid.Width; xx++ {
+			if es.cpGrid.MustGet(xx, yy) {
+				currX := xx - gridOffsetX + es.cpX
+				currY := yy - gridOffsetY + es.cpY
+				es.grid.Set(currX, currY, es.cpIdx+1)
 			}
 		}
 	}
@@ -513,8 +535,8 @@ func (es *EngineState) LockPiece() {
 }
 
 func (es *EngineState) SetHardDropHeight() {
-	yy := es.currentPieceY
-	for !es.CheckCollision(es.currentPieceGrid, es.currentPieceX, yy+1) {
+	yy := es.cpY
+	for !es.CheckCollision(es.cpGrid, es.cpX, yy+1) {
 		yy += 1
 	}
 
@@ -522,28 +544,28 @@ func (es *EngineState) SetHardDropHeight() {
 }
 
 func (es *EngineState) SetSnapPositions(distance int) {
-	l := es.currentPieceX
-	r := es.currentPieceX
+	l := es.cpX
+	r := es.cpX
 
 	for lCount := 0; (distance == 10 || lCount < distance) &&
-		!es.CheckCollision(es.currentPieceGrid, l-1, es.currentPieceY); lCount++ {
+		!es.CheckCollision(es.cpGrid, l-1, es.cpY); lCount++ {
 		l -= 1
 	}
 
 	for rCount := 0; (distance == 10 || rCount < distance) &&
-		!es.CheckCollision(es.currentPieceGrid, r+1, es.currentPieceY); rCount++ {
+		!es.CheckCollision(es.cpGrid, r+1, es.cpY); rCount++ {
 		r += 1
 	}
 
 	es.leftSnapPosition = l
 	es.rightSnapPosition = r
 
-	ly := es.currentPieceY
-	ry := es.currentPieceY
-	for !es.CheckCollision(es.currentPieceGrid, es.leftSnapPosition, ly+1) {
+	ly := es.cpY
+	ry := es.cpY
+	for !es.CheckCollision(es.cpGrid, es.leftSnapPosition, ly+1) {
 		ly++
 	}
-	for !es.CheckCollision(es.currentPieceGrid, es.rightSnapPosition, ry+1) {
+	for !es.CheckCollision(es.cpGrid, es.rightSnapPosition, ry+1) {
 		ry++
 	}
 
@@ -581,16 +603,21 @@ func (es *EngineState) ClearLines() {
 	}
 }
 
-func (es *EngineState) SpawnHardDropParticles(prevHeight, hardDropHeight int) {
-	gridOffsetX := es.currentPieceGrid.Width / 2
-	gridOffsetY := es.currentPieceGrid.Height / 2
+func (es *EngineState) DownDashParticles(
+	piece Grid[bool],
+	pieceIdx int,
+	x int,
+	initY, finY int,
+) {
+	gridOffsetX := piece.Width / 2
+	gridOffsetY := piece.Height / 2
 
-	blockTops := make([]int, es.currentPieceGrid.Width)
-	for x := 0; x < es.currentPieceGrid.Width; x++ {
+	blockTops := make([]int, piece.Width)
+	for x := 0; x < piece.Width; x++ {
 		found := false
 	topFinder:
-		for y := 0; y < es.currentPieceGrid.Height; y++ {
-			if es.currentPieceGrid.MustGet(x, y) {
+		for y := 0; y < piece.Height; y++ {
+			if piece.MustGet(x, y) {
 				blockTops[x] = y
 				found = true
 				break topFinder
@@ -602,20 +629,109 @@ func (es *EngineState) SpawnHardDropParticles(prevHeight, hardDropHeight int) {
 		}
 	}
 
-	for z := hardDropHeight - 1; z > prevHeight; z-- {
+	for z := finY - 1; z > initY; z-- {
 		for dx, h := range blockTops {
 			if h < 0 {
 				continue
 			}
-			i := 1 - min(1, float32(hardDropHeight-z)/15.0)
-			es.hardDropParticles.SpawnParticle(
+			i := 1 - min(1, float32(finY-z-1)/15.0)
+			es.dashParticles.SpawnParticle(
 				Particle{
 					Intensity: i * i * i,
-					Style:     defStyle.Foreground(PieceColors[es.currentPieceIdx]),
-					X:         dx + es.currentPieceX - gridOffsetX,
+					Style:     defStyle.Foreground(PieceColors[pieceIdx]),
+					X:         dx + x - gridOffsetX,
 					Y:         z + h - gridOffsetY,
 				},
 			)
 		}
 	}
 }
+
+func (es *EngineState) LeftDashParticles(
+	piece Grid[bool],
+	pieceIdx int,
+	y int,
+	initX, finX int,
+) {
+	gridOffsetX := piece.Width / 2
+	gridOffsetY := piece.Height / 2
+
+	blockRightEdges := make([]int, piece.Height)
+	for y := 0; y < piece.Height; y++ {
+		found := false
+	topFinder:
+		for x := piece.Width-1; x >= 0; x-- {
+			if piece.MustGet(x, y) {
+				blockRightEdges[y] = x
+				found = true
+				break topFinder
+			}
+		}
+
+		if !found {
+			blockRightEdges[y] = -1
+		}
+	}
+
+	for z := finX + 1; z <= initX; z++ {
+		for dy, w := range blockRightEdges {
+			if w < 0 {
+				continue
+			}
+			i := 1 - min(1, float32(z-finX-1)/15.0)
+			es.dashParticles.SpawnParticle(
+				Particle{
+					Intensity: i * i * i,
+					Style:     defStyle.Foreground(PieceColors[pieceIdx]),
+					X:         z + w - gridOffsetX,
+					Y:         dy + y - gridOffsetY,
+				},
+			)
+		}
+	}
+}
+
+func (es *EngineState) RightDashParticles(
+	piece Grid[bool],
+	pieceIdx int,
+	y int,
+	initX, finX int,
+) {
+	gridOffsetX := piece.Width / 2
+	gridOffsetY := piece.Height / 2
+
+	blockLeftEdges := make([]int, piece.Width)
+	for y := 0; y < piece.Height; y++ {
+		found := false
+	topFinder:
+		for x := 0; x < piece.Width; x++ {
+			if piece.MustGet(x, y) {
+				blockLeftEdges[y] = x
+				found = true
+				break topFinder
+			}
+		}
+
+		if !found {
+			blockLeftEdges[y] = -1
+		}
+	}
+
+	for z := finX - 1; z > initX; z-- {
+		for dy, w := range blockLeftEdges {
+			if w < 0 {
+				continue
+			}
+			i := 1 - min(1, float32(finX-z-1)/15.0)
+			es.dashParticles.SpawnParticle(
+				Particle{
+					Intensity: i * i * i,
+					Style:     defStyle.Foreground(PieceColors[pieceIdx]),
+					X:         z + w - gridOffsetX,
+					Y:         dy + y - gridOffsetY,
+				},
+			)
+		}
+	}
+}
+
