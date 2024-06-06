@@ -1,7 +1,6 @@
 package main
 
 import (
-	"math/rand"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -36,19 +35,19 @@ type EngineState struct {
 	gravityTimer int
 	fallRate     int
 
-	rand *rand.Rand
+	pieceGenerator PieceGenerator
 
 	nextPieces        []int
 	hardDropParticles ParticleSystem
 }
 
 func InitEngineState() *EngineState {
-	rand := rand.New(rand.NewSource(time.Now().UnixNano()))
+	gen := NewBagRandomizer(time.Now().UnixNano(), 2)
 	es := EngineState{
 		LastUpdateDuration: UPDATE_TICK_RATE_MS,
 
 		grid:          MakeGrid(BOARD_WIDTH, BOARD_HEIGHT, 0),
-		rand:          rand,
+		pieceGenerator: &gen,
 		currentPieceX: BOARD_WIDTH / 2,
 		currentPieceY: 3,
 		fallRate:      INITIAL_FALL_RATE,
@@ -71,17 +70,17 @@ func (es *EngineState) HandleInput(ev tcell.Event) {
 	switch ev := ev.(type) {
 	case *tcell.EventKey:
 		if ev.Key() == tcell.KeyUp ||
-			IsRune(ev, 'w') || IsRune(ev, 'W') ||
+			IsRune(ev, 'k') || IsRune(ev, 'K') ||
 			IsRune(ev, 'x') || IsRune(ev, 'X') {
 			es.RotateCW()
 		}
 		if IsRune(ev, 'z') || IsRune(ev, 'Z') {
 			es.RotateCCW()
-		} else if ev.Key() == tcell.KeyDown || IsRune(ev, 's') || IsRune(ev, 'S') {
+		} else if ev.Key() == tcell.KeyDown || IsRune(ev, 'j') || IsRune(ev, 'J') {
 			es.SoftDrop()
-		} else if ev.Key() == tcell.KeyLeft || IsRune(ev, 'a') || IsRune(ev, 'A') {
+		} else if ev.Key() == tcell.KeyLeft || IsRune(ev, 'h') || IsRune(ev, 'H') {
 			es.MovePiece(-1)
-		} else if ev.Key() == tcell.KeyRight || IsRune(ev, 'd') || IsRune(ev, 'D') {
+		} else if ev.Key() == tcell.KeyRight || IsRune(ev, 'l') || IsRune(ev, 'L') {
 			es.MovePiece(1)
 		} else if IsRune(ev, ' ') {
 			es.HardDrop()
@@ -247,7 +246,7 @@ func (es *EngineState) DrawGrid(rr Area) {
 
 func (es *EngineState) FillNextPieces() {
 	for i := 0; i < NUM_NEXT_PIECES; i++ {
-		es.nextPieces[i] = es.rand.Intn(7)
+		es.nextPieces[i] = es.pieceGenerator.NextPiece()
 	}
 }
 
@@ -262,7 +261,7 @@ func (es *EngineState) GetRandomPiece() {
 	for i := 0; i < NUM_NEXT_PIECES-1; i++ {
 		es.nextPieces[i] = es.nextPieces[i+1]
 	}
-	es.nextPieces[NUM_NEXT_PIECES-2] = es.rand.Intn(7)
+	es.nextPieces[NUM_NEXT_PIECES-2] = es.pieceGenerator.NextPiece()
 
 	es.SetHardDropHeight()
 }
