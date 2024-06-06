@@ -467,6 +467,7 @@ func (es *EngineState) SwapHoldPiece() {
 		es.currentPieceX = BOARD_WIDTH / 2
 		es.currentPieceY = 1
 		es.SetHardDropHeight()
+		es.moveMultiplier = 0
 	}
 
 	es.usedHoldPiece = true
