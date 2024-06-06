@@ -50,10 +50,10 @@ type EngineState struct {
 	holdPiece     int
 	usedHoldPiece bool
 
-	moveMultiplier    int
-	leftSnapPosition  int
-	rightSnapPosition int
-	hardDropLeftSnapHeight int
+	moveMultiplier          int
+	leftSnapPosition        int
+	rightSnapPosition       int
+	hardDropLeftSnapHeight  int
 	hardDropRightSnapHeight int
 }
 
@@ -166,7 +166,7 @@ func (es *EngineState) Draw(lag float64) {
 	)
 
 	// Snap indicators
-	if (es.moveMultiplier != 0) {
+	if es.moveMultiplier != 0 {
 		es.DrawPiece(
 			es.currentPieceGrid,
 			gameArea.X+es.leftSnapPosition-gridOffsetX,
@@ -197,7 +197,6 @@ func (es *EngineState) Draw(lag float64) {
 			LightPieceStyle(es.currentPieceIdx),
 		)
 	}
-
 
 	es.DrawPiece(
 		es.currentPieceGrid,
@@ -411,6 +410,12 @@ func (es *EngineState) MovePiece(dx int) {
 }
 
 func (es *EngineState) SoftDrop() {
+	if es.moveMultiplier == 10 {
+		es.currentPieceY = es.hardDropHeight
+		es.moveMultiplier = 0
+		es.gravityTimer = es.fallRate
+		return
+	}
 	if es.CheckCollision(
 		es.currentPieceGrid,
 		es.currentPieceX,
@@ -422,8 +427,6 @@ func (es *EngineState) SoftDrop() {
 
 	es.currentPieceY += 1
 	es.gravityTimer = es.fallRate
-
-	es.moveMultiplier = 0
 }
 
 func (es *EngineState) GravityDrop() {
