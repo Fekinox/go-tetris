@@ -163,6 +163,24 @@ func (es *EngineState) Draw(lag float64) {
 		LightPieceStyle(es.currentPieceIdx),
 	)
 
+	// Snap indicators
+	if (es.moveMultiplier != 0) {
+		es.DrawPiece(
+			es.currentPieceGrid,
+			gameArea.X+es.leftSnapPosition-gridOffsetX,
+			gameArea.Y+es.currentPieceY-gridOffsetY,
+			'*',
+			LightPieceStyle(es.currentPieceIdx),
+		)
+		es.DrawPiece(
+			es.currentPieceGrid,
+			gameArea.X+es.rightSnapPosition-gridOffsetX,
+			gameArea.Y+es.currentPieceY-gridOffsetY,
+			'*',
+			LightPieceStyle(es.currentPieceIdx),
+		)
+	}
+
 	es.DrawPiece(
 		es.currentPieceGrid,
 		gameArea.X+es.currentPieceX-gridOffsetX,
