@@ -10,7 +10,7 @@ import (
 const NUM_PARTICLES = 256
 
 var PARTICLE_LEVELS = []rune(
-	" --**%%##",
+	" ..--**%%##",
 )
 
 type Particle struct {
@@ -51,7 +51,7 @@ func InitParticles(intensityJitter float32) ParticleSystem {
 func (ps *ParticleSystem) Update() {
 	for i := ps.head; i != ps.tail; i = (i + 1) % NUM_PARTICLES {
 		p := &ps.Particles[i]
-		p.Intensity -= 4.0 * float32(UPDATE_TICK_RATE_MS)/1000.0
+		p.Intensity -= 2.0 * float32(UPDATE_TICK_RATE_MS)/1000.0
 		if p.Intensity < 0 {
 			ps.KillParticle(i)
 		}

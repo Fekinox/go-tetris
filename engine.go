@@ -437,12 +437,12 @@ func (es *EngineState) SpawnHardDropParticles(prevHeight, hardDropHeight int) {
 		}
 	}
 
-	for z := prevHeight; z < hardDropHeight; z++ {
+	for z := hardDropHeight-1; z > prevHeight; z-- {
 		for dx, h := range blockTops {
 			if h < 0 {
 				continue
 			}
-			i := float32(z-prevHeight) / 15.0
+			i := 1 - min(1, float32(hardDropHeight - z) / 15.0)
 			es.hardDropParticles.SpawnParticle(
 				Particle{
 					Intensity: i * i * i,
