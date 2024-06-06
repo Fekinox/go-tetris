@@ -149,7 +149,7 @@ func (es *EngineState) Draw(lag float64) {
 	es.DrawWell(rr)
 	gameArea := Area{
 		X:      rr.X + 1,
-		Y:      rr.Y + 1,
+		Y:      rr.Y,
 		Width:  BOARD_WIDTH,
 		Height: BOARD_HEIGHT,
 	}
@@ -233,7 +233,7 @@ func (es *EngineState) DrawWell(rr Area) {
 	for xx := 0; xx < es.grid.Width; xx++ {
 		Screen.SetContent(
 			rr.X+1+xx,
-			rr.Y+es.grid.Height+1,
+			rr.Y+es.grid.Height,
 			'#',
 			nil, defStyle)
 	}
@@ -308,7 +308,7 @@ func (es *EngineState) GetRandomPiece() {
 	es.cpGrid = Pieces[idx][0]
 	es.cpRot = 0
 	es.cpX = BOARD_WIDTH / 2
-	es.cpY = 1
+	es.cpY = 2
 
 	for i := 0; i < NUM_NEXT_PIECES-1; i++ {
 		es.nextPieces[i] = es.nextPieces[i+1]
@@ -487,7 +487,7 @@ func (es *EngineState) SwapHoldPiece() {
 		es.cpGrid = Pieces[es.cpIdx][0]
 		es.cpRot = 0
 		es.cpX = BOARD_WIDTH / 2
-		es.cpY = 1
+		es.cpY = 2
 		es.SetHardDropHeight()
 		es.moveMultiplier = 0
 	}
