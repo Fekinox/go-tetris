@@ -136,16 +136,24 @@ func (es *EngineState) Draw(lag float64) {
 		Height: BOARD_HEIGHT,
 	}
 	es.hardDropParticles.Draw(gameArea)
-	es.DrawHardDropIndicator(gameArea)
-
 	gridOffsetX := es.currentPieceGrid.Width / 2
 	gridOffsetY := es.currentPieceGrid.Height / 2
 
+	// Hard drop indicator
 	es.DrawPiece(
 		es.currentPieceGrid,
-		es.currentPieceIdx,
+		gameArea.X + es.currentPieceX - gridOffsetX,
+		gameArea.Y + es.hardDropHeight - gridOffsetY,
+		'+',
+		LightPieceStyle(es.currentPieceIdx),
+	)
+
+	es.DrawPiece(
+		es.currentPieceGrid,
 		gameArea.X + es.currentPieceX - gridOffsetX,
 		gameArea.Y + es.currentPieceY - gridOffsetY,
+		'o',
+		SolidPieceStyle(es.currentPieceIdx),
 	)
 
 	es.DrawGrid(gameArea)
@@ -182,19 +190,18 @@ func (es *EngineState) DrawWell(rr Area) {
 
 func (es *EngineState) DrawPiece(
 	piece Grid[bool],
-	pieceIndex int,
-	px, py int) {
+	px, py int,
+	rune rune,
+	style tcell.Style,
+) {
 
 	for yy := 0; yy < piece.Height; yy++ {
 		for xx := 0; xx < piece.Width; xx++ {
 			if piece.MustGet(xx, yy) {
-				color := PieceColors[pieceIndex]
-				style :=
-					defStyle.Background(color).Foreground(tcell.ColorBlack)
 				Screen.SetContent(
 					xx+px,
 					yy+py,
-					'o',
+					rune,
 					nil, style)
 			}
 		}
@@ -205,8 +212,9 @@ func (es *EngineState) DrawNextAndHoldPieces(rr Area) {
 	if es.holdPiece != 8 {
 		es.DrawPiece(
 			Pieces[es.holdPiece][0],
-			es.holdPiece,
-			rr.X, rr.Y)
+			rr.X, rr.Y,
+			'o',
+			SolidPieceStyle(es.holdPiece))
 	}
 
 	for i := 0; i < NUM_NEXT_PIECES; i++ {
@@ -214,26 +222,9 @@ func (es *EngineState) DrawNextAndHoldPieces(rr Area) {
 		py := rr.Y + (i + 1) * 4
 		es.DrawPiece(
 			Pieces[es.nextPieces[i]][0],
-			es.nextPieces[i],
-			px, py)
-	}
-}
-
-func (es *EngineState) DrawHardDropIndicator(rr Area) {
-	gridOffsetX := es.currentPieceGrid.Width / 2
-	gridOffsetY := es.currentPieceGrid.Height / 2
-
-	for yy := 0; yy < es.currentPieceGrid.Height; yy++ {
-		for xx := 0; xx < es.currentPieceGrid.Width; xx++ {
-			if es.currentPieceGrid.MustGet(xx, yy) {
-				color := PieceColors[es.currentPieceIdx]
-				Screen.SetContent(
-					rr.X+xx-gridOffsetX+es.currentPieceX,
-					rr.Y+yy-gridOffsetY+es.hardDropHeight,
-					'+',
-					nil, defStyle.Foreground(color))
-			}
-		}
+			px, py,
+			'o',
+		SolidPieceStyle(es.nextPieces[i]))
 	}
 }
 
