@@ -53,6 +53,8 @@ type EngineState struct {
 	moveMultiplier    int
 	leftSnapPosition  int
 	rightSnapPosition int
+	hardDropLeftSnapHeight int
+	hardDropRightSnapHeight int
 }
 
 func InitEngineState() *EngineState {
@@ -179,7 +181,23 @@ func (es *EngineState) Draw(lag float64) {
 			'*',
 			LightPieceStyle(es.currentPieceIdx),
 		)
+		// Hard drop snap indicators
+		es.DrawPiece(
+			es.currentPieceGrid,
+			gameArea.X+es.leftSnapPosition-gridOffsetX,
+			gameArea.Y+es.hardDropLeftSnapHeight-gridOffsetY,
+			'.',
+			LightPieceStyle(es.currentPieceIdx),
+		)
+		es.DrawPiece(
+			es.currentPieceGrid,
+			gameArea.X+es.rightSnapPosition-gridOffsetX,
+			gameArea.Y+es.hardDropRightSnapHeight-gridOffsetY,
+			'.',
+			LightPieceStyle(es.currentPieceIdx),
+		)
 	}
+
 
 	es.DrawPiece(
 		es.currentPieceGrid,
@@ -316,83 +334,49 @@ func (es *EngineState) SetMoveMultiplier(val int) {
 }
 
 func (es *EngineState) RotateCW() {
-	var count int
-	dirty := true
-
-	if es.moveMultiplier == 0 {
-		count = 1
-		dirty = false
-	} else if es.moveMultiplier == 10 {
-		count = 1
-	} else {
-		count = es.moveMultiplier % 4
-	}
-
 	rotationLength := len(Pieces[es.currentPieceIdx])
-	newRotation := es.currentPieceRotation
+	newRotation := (es.currentPieceRotation + 1) % rotationLength
 
-	for i := 0; i < count; i++ {
-		newRotation = (newRotation + 1) % rotationLength
-
-		if newRotation < 0 {
-			newRotation = rotationLength - 1
-		}
-
-		if es.CheckCollision(
-			Pieces[es.currentPieceIdx][newRotation],
-			es.currentPieceX,
-			es.currentPieceY,
-		) {
-			break
-		}
+	if es.CheckCollision(
+		Pieces[es.currentPieceIdx][newRotation],
+		es.currentPieceX,
+		es.currentPieceY,
+	) {
+		return
 	}
 
 	es.currentPieceRotation = newRotation
 	es.currentPieceGrid = Pieces[es.currentPieceIdx][es.currentPieceRotation]
 	es.SetHardDropHeight()
 
-	if dirty {
-		es.moveMultiplier = 0
+	if es.moveMultiplier != 0 {
+		es.SetSnapPositions(es.moveMultiplier)
 	}
 }
 
 func (es *EngineState) RotateCCW() {
-	var count int
-	dirty := true
-
-	if es.moveMultiplier == 0 {
-		count = 1
-		dirty = false
-	} else if es.moveMultiplier == 10 {
-		count = 1
-	} else {
-		count = es.moveMultiplier % 4
-	}
 
 	rotationLength := len(Pieces[es.currentPieceIdx])
-	newRotation := es.currentPieceRotation
-	for i := 0; i < count; i++ {
-		newRotation = newRotation - 1
+	newRotation := es.currentPieceRotation - 1
 
-		if newRotation < 0 {
-			newRotation = rotationLength - 1
-		}
+	if newRotation < 0 {
+		newRotation = rotationLength - 1
+	}
 
-		if es.CheckCollision(
-			Pieces[es.currentPieceIdx][newRotation],
-			es.currentPieceX,
-			es.currentPieceY,
-		) {
-			break
-		}
+	if es.CheckCollision(
+		Pieces[es.currentPieceIdx][newRotation],
+		es.currentPieceX,
+		es.currentPieceY,
+	) {
+		return
 	}
 
 	es.currentPieceRotation = newRotation
 	es.currentPieceGrid = Pieces[es.currentPieceIdx][es.currentPieceRotation]
 	es.SetHardDropHeight()
 
-	if dirty {
-		es.moveMultiplier = 0
+	if es.moveMultiplier != 0 {
+		es.SetSnapPositions(es.moveMultiplier)
 	}
 }
 
@@ -411,6 +395,7 @@ func (es *EngineState) MovePiece(dx int) {
 
 		es.moveMultiplier = 0
 		es.SetHardDropHeight()
+		return
 	}
 	if es.CheckCollision(
 		es.currentPieceGrid,
@@ -548,6 +533,18 @@ func (es *EngineState) SetSnapPositions(distance int) {
 
 	es.leftSnapPosition = l
 	es.rightSnapPosition = r
+
+	ly := es.currentPieceY
+	ry := es.currentPieceY
+	for !es.CheckCollision(es.currentPieceGrid, es.leftSnapPosition, ly+1) {
+		ly++
+	}
+	for !es.CheckCollision(es.currentPieceGrid, es.rightSnapPosition, ry+1) {
+		ry++
+	}
+
+	es.hardDropLeftSnapHeight = ly
+	es.hardDropRightSnapHeight = ry
 }
 
 func (es *EngineState) ClearLines() {
