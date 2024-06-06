@@ -139,7 +139,7 @@ var PieceColors = []tcell.Color{
 	// S
 	tcell.ColorLime,
 	// T
-	tcell.ColorPurple,
+	tcell.ColorFuchsia,
 	// Z
 	tcell.ColorRed,
 }
