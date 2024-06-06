@@ -14,6 +14,8 @@ const BOARD_HEIGHT = 22
 
 const INITIAL_FALL_RATE = 240
 
+const NUM_NEXT_PIECES = 5
+
 func IsRune(ev *tcell.EventKey, r rune) bool {
 	return (ev.Key() == tcell.KeyRune && ev.Rune() == r)
 }
@@ -36,6 +38,7 @@ type EngineState struct {
 
 	rand *rand.Rand
 
+	nextPieces        []int
 	hardDropParticles ParticleSystem
 }
 
@@ -49,11 +52,13 @@ func InitEngineState() *EngineState {
 		currentPieceX: BOARD_WIDTH / 2,
 		currentPieceY: 3,
 		fallRate:      INITIAL_FALL_RATE,
+		nextPieces:    make([]int, NUM_NEXT_PIECES),
 	}
 
 	es.gravityTimer = es.fallRate
 	es.hardDropParticles = InitParticles(0.1)
 
+	es.FillNextPieces()
 	es.GetRandomPiece()
 
 	return &es
@@ -127,8 +132,26 @@ func (es *EngineState) Draw(lag float64) {
 	}
 	es.hardDropParticles.Draw(gameArea)
 	es.DrawHardDropIndicator(gameArea)
-	es.DrawCurrentPiece(gameArea)
+
+	gridOffsetX := es.currentPieceGrid.Width / 2
+	gridOffsetY := es.currentPieceGrid.Height / 2
+
+	es.DrawPiece(
+		gameArea,
+		es.currentPieceGrid,
+		es.currentPieceIdx,
+		es.currentPieceX - gridOffsetX,
+		es.currentPieceY - gridOffsetY,
+	)
+
 	es.DrawGrid(gameArea)
+
+	nextPieceArea := Area {
+		X: rr.X + BOARD_WIDTH + 6,
+		Y: rr.Y + 1,
+	}
+
+	es.DrawNextPieces(nextPieceArea)
 }
 
 func (es *EngineState) DrawWell(rr Area) {
@@ -153,23 +176,37 @@ func (es *EngineState) DrawWell(rr Area) {
 	}
 }
 
-func (es *EngineState) DrawCurrentPiece(rr Area) {
-	gridOffsetX := es.currentPieceGrid.Width / 2
-	gridOffsetY := es.currentPieceGrid.Height / 2
+func (es *EngineState) DrawPiece(
+	rr Area,
+	piece Grid[bool],
+	pieceIndex int,
+	px, py int) {
 
-	for yy := 0; yy < es.currentPieceGrid.Height; yy++ {
-		for xx := 0; xx < es.currentPieceGrid.Width; xx++ {
-			if es.currentPieceGrid.MustGet(xx, yy) {
-				color := PieceColors[es.currentPieceIdx]
+	for yy := 0; yy < piece.Height; yy++ {
+		for xx := 0; xx < piece.Width; xx++ {
+			if piece.MustGet(xx, yy) {
+				color := PieceColors[pieceIndex]
 				style :=
 					defStyle.Background(color).Foreground(tcell.ColorBlack)
 				Screen.SetContent(
-					rr.X+xx-gridOffsetX+es.currentPieceX,
-					rr.Y+yy-gridOffsetY+es.currentPieceY,
+					rr.X + xx + px,
+					rr.Y + yy + py,
 					'o',
 					nil, style)
 			}
 		}
+	}
+}
+
+func (es *EngineState) DrawNextPieces(rr Area) {
+	for i := 0; i < NUM_NEXT_PIECES; i++ {
+		px := 0
+		py := (i+1) * 4
+		es.DrawPiece(
+			rr,
+			Pieces[es.nextPieces[i]][0],
+			es.nextPieces[i],
+			px, py)
 	}
 }
 
@@ -208,13 +245,24 @@ func (es *EngineState) DrawGrid(rr Area) {
 	}
 }
 
+func (es *EngineState) FillNextPieces() {
+	for i := 0; i < NUM_NEXT_PIECES; i++ {
+		es.nextPieces[i] = es.rand.Intn(7)
+	}
+}
+
 func (es *EngineState) GetRandomPiece() {
-	idx := es.rand.Intn(7)
+	idx := es.nextPieces[0]
 	es.currentPieceIdx = idx
 	es.currentPieceGrid = Pieces[idx][0]
 	es.currentPieceRotation = 0
 	es.currentPieceX = BOARD_WIDTH / 2
 	es.currentPieceY = 1
+
+	for i := 0; i < NUM_NEXT_PIECES-1; i++ {
+		es.nextPieces[i] = es.nextPieces[i+1]
+	}
+	es.nextPieces[NUM_NEXT_PIECES-2] = es.rand.Intn(7)
 
 	es.SetHardDropHeight()
 }
@@ -392,14 +440,16 @@ func (es *EngineState) SpawnHardDropParticles(prevHeight, hardDropHeight int) {
 
 	for z := prevHeight; z < hardDropHeight; z++ {
 		for dx, h := range blockTops {
-			if h < 0 { continue }
-			i := float32(z - prevHeight)/15.0
+			if h < 0 {
+				continue
+			}
+			i := float32(z-prevHeight) / 15.0
 			es.hardDropParticles.SpawnParticle(
 				Particle{
-					Intensity: i*i*i,
-					Style: defStyle.Foreground(PieceColors[es.currentPieceIdx]),
-					X: dx + es.currentPieceX - gridOffsetX,
-					Y: z + h - gridOffsetY,
+					Intensity: i * i * i,
+					Style:     defStyle.Foreground(PieceColors[es.currentPieceIdx]),
+					X:         dx + es.currentPieceX - gridOffsetX,
+					Y:         z + h - gridOffsetY,
 				},
 			)
 		}
