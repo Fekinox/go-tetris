@@ -157,15 +157,6 @@ func (es *EngineState) Draw(lag float64) {
 	gridOffsetX := es.cpGrid.Width / 2
 	gridOffsetY := es.cpGrid.Height / 2
 
-	// Hard drop indicator
-	es.DrawPiece(
-		es.cpGrid,
-		gameArea.X+es.cpX-gridOffsetX,
-		gameArea.Y+es.hardDropHeight-gridOffsetY,
-		'+',
-		LightPieceStyle(es.cpIdx),
-	)
-
 	// Snap indicators
 	if es.moveMultiplier != 0 {
 		es.DrawPiece(
@@ -182,22 +173,37 @@ func (es *EngineState) Draw(lag float64) {
 			'*',
 			LightPieceStyle(es.cpIdx),
 		)
+
 		// Hard drop snap indicators
-		es.DrawPiece(
-			es.cpGrid,
-			gameArea.X+es.leftSnapPosition-gridOffsetX,
-			gameArea.Y+es.hardDropLeftSnapHeight-gridOffsetY,
-			'.',
-			LightPieceStyle(es.cpIdx),
-		)
-		es.DrawPiece(
-			es.cpGrid,
-			gameArea.X+es.rightSnapPosition-gridOffsetX,
-			gameArea.Y+es.hardDropRightSnapHeight-gridOffsetY,
-			'.',
-			LightPieceStyle(es.cpIdx),
-		)
+		if es.leftSnapPosition != es.cpX {
+			es.DrawPiece(
+				es.cpGrid,
+				gameArea.X+es.leftSnapPosition-gridOffsetX,
+				gameArea.Y+es.hardDropLeftSnapHeight-gridOffsetY,
+				'.',
+				LightPieceStyle(es.cpIdx),
+			)
+		}
+
+		if es.rightSnapPosition != es.cpX {
+			es.DrawPiece(
+				es.cpGrid,
+				gameArea.X+es.rightSnapPosition-gridOffsetX,
+				gameArea.Y+es.hardDropRightSnapHeight-gridOffsetY,
+				'.',
+				LightPieceStyle(es.cpIdx),
+			)
+		}
 	}
+
+	// Hard drop indicator
+	es.DrawPiece(
+		es.cpGrid,
+		gameArea.X+es.cpX-gridOffsetX,
+		gameArea.Y+es.hardDropHeight-gridOffsetY,
+		'+',
+		LightPieceStyle(es.cpIdx),
+	)
 
 	es.DrawPiece(
 		es.cpGrid,
