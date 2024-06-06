@@ -39,6 +39,9 @@ type EngineState struct {
 
 	nextPieces        []int
 	hardDropParticles ParticleSystem
+
+	holdPiece     int
+	usedHoldPiece bool
 }
 
 func InitEngineState() *EngineState {
@@ -46,12 +49,13 @@ func InitEngineState() *EngineState {
 	es := EngineState{
 		LastUpdateDuration: UPDATE_TICK_RATE_MS,
 
-		grid:          MakeGrid(BOARD_WIDTH, BOARD_HEIGHT, 0),
+		grid:           MakeGrid(BOARD_WIDTH, BOARD_HEIGHT, 0),
 		pieceGenerator: &gen,
-		currentPieceX: BOARD_WIDTH / 2,
-		currentPieceY: 3,
-		fallRate:      INITIAL_FALL_RATE,
-		nextPieces:    make([]int, NUM_NEXT_PIECES),
+		currentPieceX:  BOARD_WIDTH / 2,
+		currentPieceY:  3,
+		fallRate:       INITIAL_FALL_RATE,
+		nextPieces:     make([]int, NUM_NEXT_PIECES),
+		holdPiece:      8,
 	}
 
 	es.gravityTimer = es.fallRate
@@ -84,6 +88,8 @@ func (es *EngineState) HandleInput(ev tcell.Event) {
 			es.MovePiece(1)
 		} else if IsRune(ev, ' ') {
 			es.HardDrop()
+		} else if IsRune(ev, 'c') || IsRune(ev, 'C') {
+			es.SwapHoldPiece()
 		} else if IsRune(ev, 'r') || IsRune(ev, 'R') {
 			es.HandleReset()
 		}
@@ -136,21 +142,20 @@ func (es *EngineState) Draw(lag float64) {
 	gridOffsetY := es.currentPieceGrid.Height / 2
 
 	es.DrawPiece(
-		gameArea,
 		es.currentPieceGrid,
 		es.currentPieceIdx,
-		es.currentPieceX - gridOffsetX,
-		es.currentPieceY - gridOffsetY,
+		gameArea.X + es.currentPieceX - gridOffsetX,
+		gameArea.Y + es.currentPieceY - gridOffsetY,
 	)
 
 	es.DrawGrid(gameArea)
 
-	nextPieceArea := Area {
+	nextPieceArea := Area{
 		X: rr.X + BOARD_WIDTH + 6,
 		Y: rr.Y + 1,
 	}
 
-	es.DrawNextPieces(nextPieceArea)
+	es.DrawNextAndHoldPieces(nextPieceArea)
 }
 
 func (es *EngineState) DrawWell(rr Area) {
@@ -176,7 +181,6 @@ func (es *EngineState) DrawWell(rr Area) {
 }
 
 func (es *EngineState) DrawPiece(
-	rr Area,
 	piece Grid[bool],
 	pieceIndex int,
 	px, py int) {
@@ -188,8 +192,8 @@ func (es *EngineState) DrawPiece(
 				style :=
 					defStyle.Background(color).Foreground(tcell.ColorBlack)
 				Screen.SetContent(
-					rr.X + xx + px,
-					rr.Y + yy + py,
+					xx+px,
+					yy+py,
 					'o',
 					nil, style)
 			}
@@ -197,12 +201,18 @@ func (es *EngineState) DrawPiece(
 	}
 }
 
-func (es *EngineState) DrawNextPieces(rr Area) {
-	for i := 0; i < NUM_NEXT_PIECES; i++ {
-		px := 0
-		py := (i+1) * 4
+func (es *EngineState) DrawNextAndHoldPieces(rr Area) {
+	if es.holdPiece != 8 {
 		es.DrawPiece(
-			rr,
+			Pieces[es.holdPiece][0],
+			es.holdPiece,
+			rr.X, rr.Y)
+	}
+
+	for i := 0; i < NUM_NEXT_PIECES; i++ {
+		px := rr.X 
+		py := rr.Y + (i + 1) * 4
+		es.DrawPiece(
 			Pieces[es.nextPieces[i]][0],
 			es.nextPieces[i],
 			px, py)
@@ -355,14 +365,38 @@ func (es *EngineState) SoftDrop() {
 		es.currentPieceX,
 		es.currentPieceY+1,
 	) {
-		es.PlacePiece()
+		es.LockPiece()
 		return
 	}
 
 	es.currentPieceY += 1
 }
 
-func (es *EngineState) PlacePiece() {
+func (es *EngineState) HardDrop() {
+	es.SpawnHardDropParticles(es.currentPieceY, es.hardDropHeight)
+	es.currentPieceY = es.hardDropHeight
+	es.LockPiece()
+}
+
+func (es *EngineState) SwapHoldPiece() {
+	if es.usedHoldPiece { return }
+	tmp := es.holdPiece
+	es.holdPiece = es.currentPieceIdx
+	es.currentPieceIdx = tmp
+	if es.currentPieceIdx == 8 {
+		es.GetRandomPiece()
+	} else {
+		es.currentPieceGrid = Pieces[es.currentPieceIdx][0]
+		es.currentPieceRotation = 0
+		es.currentPieceX = BOARD_WIDTH / 2
+		es.currentPieceY = 1
+		es.SetHardDropHeight()
+	}
+
+	es.usedHoldPiece = true
+}
+
+func (es *EngineState) LockPiece() {
 	gridOffsetX := es.currentPieceGrid.Width / 2
 	gridOffsetY := es.currentPieceGrid.Height / 2
 
@@ -376,14 +410,9 @@ func (es *EngineState) PlacePiece() {
 		}
 	}
 
+	es.usedHoldPiece = false
 	es.ClearLines()
 	es.GetRandomPiece()
-}
-
-func (es *EngineState) HardDrop() {
-	es.SpawnHardDropParticles(es.currentPieceY, es.hardDropHeight)
-	es.currentPieceY = es.hardDropHeight
-	es.PlacePiece()
 }
 
 func (es *EngineState) ClearLines() {
@@ -437,12 +466,12 @@ func (es *EngineState) SpawnHardDropParticles(prevHeight, hardDropHeight int) {
 		}
 	}
 
-	for z := hardDropHeight-1; z > prevHeight; z-- {
+	for z := hardDropHeight - 1; z > prevHeight; z-- {
 		for dx, h := range blockTops {
 			if h < 0 {
 				continue
 			}
-			i := 1 - min(1, float32(hardDropHeight - z) / 15.0)
+			i := 1 - min(1, float32(hardDropHeight-z)/15.0)
 			es.hardDropParticles.SpawnParticle(
 				Particle{
 					Intensity: i * i * i,
