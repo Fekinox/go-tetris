@@ -63,6 +63,7 @@ type EngineState struct {
 	fallRate     int
 	lockTimer    int
 	moveResets   int
+	floorKicked  bool
 
 	pieceGenerator PieceGenerator
 
@@ -462,69 +463,6 @@ func (es *EngineState) Rotate(offset int) {
 		return
 	}
 
-}
-
-func (es *EngineState) RotateCW() {
-	rotationLength := len(Pieces[es.cpIdx])
-	newRotation := (es.cpRot + 1) % rotationLength
-
-	if es.CheckCollision(
-		Pieces[es.cpIdx][newRotation],
-		es.cpX,
-		es.cpY,
-	) {
-		return
-	}
-
-	es.cpRot = newRotation
-	es.cpGrid = Pieces[es.cpIdx][es.cpRot]
-	es.SetHardDropHeight()
-
-	if es.shiftMode {
-		es.SetSnapPositions()
-	}
-
-	oldAirborne := es.airborne
-	es.SetAirborne()
-
-	if !oldAirborne && !es.airborne && es.moveResets < MAX_MOVE_RESETS {
-		es.moveResets += 1
-		es.lockTimer = LOCK_DELAY
-	}
-}
-
-func (es *EngineState) RotateCCW() {
-
-	rotationLength := len(Pieces[es.cpIdx])
-	newRotation := es.cpRot - 1
-
-	if newRotation < 0 {
-		newRotation = rotationLength - 1
-	}
-
-	if es.CheckCollision(
-		Pieces[es.cpIdx][newRotation],
-		es.cpX,
-		es.cpY,
-	) {
-		return
-	}
-
-	es.cpRot = newRotation
-	es.cpGrid = Pieces[es.cpIdx][es.cpRot]
-	es.SetHardDropHeight()
-
-	if es.shiftMode {
-		es.SetSnapPositions()
-	}
-
-	oldAirborne := es.airborne
-	es.SetAirborne()
-
-	if !oldAirborne && !es.airborne && es.moveResets < MAX_MOVE_RESETS {
-		es.moveResets += 1
-		es.lockTimer = LOCK_DELAY
-	}
 }
 
 func (es *EngineState) HandleReset() {
