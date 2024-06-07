@@ -74,10 +74,10 @@ type EngineState struct {
 	hardDropRightSnapHeight int
 	hardDropHeight          int
 
-	score int64
-	lines int64
-	combo int
-	level int64
+	score         int64
+	lines         int64
+	combo         int
+	level         int64
 	startingLevel int64
 }
 
@@ -110,7 +110,7 @@ func (es *EngineState) StartGame(seed int64) {
 	es.level = es.startingLevel
 	speedFactor := int(min(14, es.level-1))
 	es.fallRate =
-		MIN_SPEED + speedFactor * (MAX_SPEED - MIN_SPEED)/14
+		MIN_SPEED + speedFactor*(MAX_SPEED-MIN_SPEED)/14
 
 	es.FillNextPieces()
 	es.GetRandomPiece()
@@ -186,8 +186,8 @@ func (es *EngineState) Draw(lag float64) {
 	}
 
 	nextPieceArea := Area{
-		X: rr.X + BOARD_WIDTH + 12,
-		Y: rr.Y + 1,
+		X:     rr.X + BOARD_WIDTH + 12,
+		Y:     rr.Y + 1,
 		Width: 4,
 	}
 
@@ -689,7 +689,7 @@ func (es *EngineState) ClearLines() {
 		es.level = (es.lines / 10) + es.startingLevel
 		speedFactor := int(min(14, es.level-1))
 		es.fallRate =
-			MIN_SPEED + speedFactor * (MAX_SPEED - MIN_SPEED)/14
+			MIN_SPEED + speedFactor*(MAX_SPEED-MIN_SPEED)/14
 	}
 
 	// Scoring
@@ -719,7 +719,7 @@ func (es *EngineState) ClearLines() {
 		comboCount = COMBO_COUNTS[es.combo]
 	}
 
-	es.score += int64(COMBO_BASE_SCORE * comboCount) * es.level
+	es.score += int64(COMBO_BASE_SCORE*comboCount) * es.level
 }
 
 func (es *EngineState) DownDashParticles(
