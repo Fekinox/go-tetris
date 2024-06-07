@@ -664,7 +664,7 @@ func (es *EngineState) LeftDashParticles(
 	for y := 0; y < piece.Height; y++ {
 		found := false
 	topFinder:
-		for x := piece.Width-1; x >= 0; x-- {
+		for x := piece.Width - 1; x >= 0; x-- {
 			if piece.MustGet(x, y) {
 				blockRightEdges[y] = x
 				found = true
@@ -738,4 +738,3 @@ func (es *EngineState) RightDashParticles(
 		}
 	}
 }
-

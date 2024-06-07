@@ -25,7 +25,7 @@ func (p Particle) GetRune() rune {
 		0,
 		min(
 			len(PARTICLE_LEVELS)-1,
-			int(p.Intensity * float32(len(PARTICLE_LEVELS))),
+			int(p.Intensity*float32(len(PARTICLE_LEVELS))),
 		),
 	)
 	return PARTICLE_LEVELS[v]
@@ -51,7 +51,7 @@ func InitParticles(intensityJitter float32) ParticleSystem {
 func (ps *ParticleSystem) Update() {
 	for i := ps.head; i != ps.tail; i = (i + 1) % NUM_PARTICLES {
 		p := &ps.Particles[i]
-		p.Intensity -= 2.0 * float32(UPDATE_TICK_RATE_MS)/1000.0
+		p.Intensity -= 2.0 * float32(UPDATE_TICK_RATE_MS) / 1000.0
 		if p.Intensity < 0 {
 			ps.KillParticle(i)
 		}
@@ -73,7 +73,7 @@ func (ps *ParticleSystem) SpawnParticle(p Particle) {
 	p.Intensity += (2*ps.rand.Float32() - 1.0) * ps.intensityJitter
 
 	ps.Particles[ps.tail] = p
-	if (ps.curParticles == NUM_PARTICLES) {
+	if ps.curParticles == NUM_PARTICLES {
 		ps.tail = (ps.tail + 1) % NUM_PARTICLES
 		ps.head = (ps.head + 1) % NUM_PARTICLES
 	} else {

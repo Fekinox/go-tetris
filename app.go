@@ -28,8 +28,8 @@ func NewApp() App {
 	Screen.EnablePaste()
 	Screen.Clear()
 
-	return App {
-		EngineState: InitEngineState(),
+	return App{
+		EngineState:  InitEngineState(),
 		DefaultStyle: tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorReset),
 	}
 }

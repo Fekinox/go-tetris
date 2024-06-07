@@ -63,7 +63,7 @@ func FillRegion(x, y int, width, height int, c rune, style tcell.Style) {
 	for dy := 0; dy < height; dy++ {
 		for dx := 0; dx < width; dx++ {
 			Screen.SetContent(x+dx, y+dy, c, nil, style)
-		}	
+		}
 	}
 }
 

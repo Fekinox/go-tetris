@@ -13,8 +13,7 @@ func (a Area) Left() int   { return a.X }
 func (a Area) Right() int  { return a.X + a.Width }
 
 func (a Area) Intersects(other Area) bool {
-	return !(
-		(a.Right() < other.Left() || other.Right() < a.Left()) ||
+	return !((a.Right() < other.Left() || other.Right() < a.Left()) ||
 		(a.Bottom() < other.Top() || other.Bottom() < a.Top()))
 }
 
@@ -28,10 +27,10 @@ func (a Area) Intersection(other Area) (Area, bool) {
 	left := max(a.Left(), other.Left())
 	right := min(a.Right(), other.Right())
 
-	return Area {
-		X: left,
-		Y: top,
-		Width: right - left,
+	return Area{
+		X:      left,
+		Y:      top,
+		Width:  right - left,
 		Height: bottom - top,
 	}, true
 }
@@ -43,10 +42,10 @@ func (a Area) Contains(x, y int) bool {
 }
 
 func (a Area) Inset(width, height int) Area {
-	return Area {
-		X: a.X + (a.Width - width)/2,
-		Y: a.Y + (a.Height - height)/2,
-		Width: width,
+	return Area{
+		X:      a.X + (a.Width-width)/2,
+		Y:      a.Y + (a.Height-height)/2,
+		Width:  width,
 		Height: height,
 	}
 }

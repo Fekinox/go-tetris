@@ -13,7 +13,7 @@ type TrueRandomPieceGenerator struct {
 }
 
 func NewTrueRandomPieceGenerator(seed int64) TrueRandomPieceGenerator {
-	return TrueRandomPieceGenerator {
+	return TrueRandomPieceGenerator{
 		rand: rand.New(rand.NewSource(seed)),
 	}
 }
@@ -24,18 +24,18 @@ func (pg *TrueRandomPieceGenerator) NextPiece() int {
 
 type BagRandomizer struct {
 	rand *rand.Rand
-	bag []int
+	bag  []int
 	curr int
 }
 
 func NewBagRandomizer(seed int64, levels int) BagRandomizer {
-	br := BagRandomizer {
+	br := BagRandomizer{
 		rand: rand.New(rand.NewSource(seed)),
-		bag: make([]int, 7 * levels),
+		bag:  make([]int, 7*levels),
 	}
 
-	for i := 0; i < 7 * levels; i++ {
-		br.bag[i] = i % 7	
+	for i := 0; i < 7*levels; i++ {
+		br.bag[i] = i % 7
 	}
 
 	br.shuffle()
@@ -44,7 +44,7 @@ func NewBagRandomizer(seed int64, levels int) BagRandomizer {
 }
 
 func (br *BagRandomizer) shuffle() {
-	for i := len(br.bag)-1; i > 0; i-- {
+	for i := len(br.bag) - 1; i > 0; i-- {
 		j := br.rand.Intn(i)
 		tmp := br.bag[i]
 		br.bag[i] = br.bag[j]
@@ -55,7 +55,7 @@ func (br *BagRandomizer) shuffle() {
 func (br *BagRandomizer) NextPiece() int {
 	p := br.bag[br.curr]
 	br.curr += 1
-	if (br.curr == len(br.bag)) {
+	if br.curr == len(br.bag) {
 		br.curr = 0
 		br.shuffle()
 	}
