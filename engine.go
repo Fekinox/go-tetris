@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -21,6 +22,7 @@ const TRIPLE_SCORE = 500
 const TETRIS_SCORE = 800
 
 const COMBO_BASE_SCORE = 50
+
 var COMBO_COUNTS = []int{
 	0, 0,
 	1, 1,
@@ -72,6 +74,7 @@ type EngineState struct {
 	hardDropHeight          int
 
 	score int64
+	lines int64
 	combo int
 }
 
@@ -164,13 +167,31 @@ func (es *EngineState) Draw(lag float64) {
 		Height: rr.Height + 2,
 	}, defStyle)
 
-	es.DrawWell(rr)
 	gameArea := Area{
-		X:      rr.X + 1,
-		Y:      rr.Y,
+		X:      rr.X + 8,
+		Y:      rr.Y + 1,
 		Width:  BOARD_WIDTH,
 		Height: BOARD_HEIGHT,
 	}
+
+	nextPieceArea := Area{
+		X: rr.X + BOARD_WIDTH + 12,
+		Y: rr.Y + 1,
+		Width: 4,
+	}
+
+	holdPieceArea := Area{
+		X: rr.X + 1,
+		Y: rr.Y + 1,
+	}
+
+	scoreArea := Area{
+		X: nextPieceArea.Right() + 2,
+		Y: rr.Y + 1,
+	}
+
+	es.DrawWell(gameArea)
+
 	es.dashParticles.Draw(gameArea)
 	gridOffsetX := es.cpGrid.Width / 2
 	gridOffsetY := es.cpGrid.Height / 2
@@ -233,30 +254,27 @@ func (es *EngineState) Draw(lag float64) {
 
 	es.DrawGrid(gameArea)
 
-	nextPieceArea := Area{
-		X: rr.X + BOARD_WIDTH + 6,
-		Y: rr.Y + 1,
-	}
-
-	es.DrawNextAndHoldPieces(nextPieceArea)
+	es.DrawNextPieces(nextPieceArea)
+	es.DrawHoldPiece(holdPieceArea)
+	es.DrawScore(scoreArea)
 }
 
 func (es *EngineState) DrawWell(rr Area) {
 	for y := 0; y < es.grid.Height+1; y++ {
 		Screen.SetContent(
-			rr.X,
+			rr.X-1,
 			rr.Y+y,
 			'#',
 			nil, defStyle)
 		Screen.SetContent(
-			rr.X+es.grid.Width+1,
+			rr.X+es.grid.Width,
 			rr.Y+y,
 			'#',
 			nil, defStyle)
 	}
 	for xx := 0; xx < es.grid.Width; xx++ {
 		Screen.SetContent(
-			rr.X+1+xx,
+			rr.X+xx,
 			rr.Y+es.grid.Height,
 			'#',
 			nil, defStyle)
@@ -283,7 +301,19 @@ func (es *EngineState) DrawPiece(
 	}
 }
 
-func (es *EngineState) DrawNextAndHoldPieces(rr Area) {
+func (es *EngineState) DrawNextPieces(rr Area) {
+	for i := 0; i < NUM_NEXT_PIECES; i++ {
+		px := rr.X
+		py := rr.Y + i*4
+		es.DrawPiece(
+			Pieces[es.nextPieces[i]][0],
+			px, py,
+			'o',
+			SolidPieceStyle(es.nextPieces[i]))
+	}
+}
+
+func (es *EngineState) DrawHoldPiece(rr Area) {
 	if es.holdPiece != 8 {
 		es.DrawPiece(
 			Pieces[es.holdPiece][0],
@@ -291,15 +321,26 @@ func (es *EngineState) DrawNextAndHoldPieces(rr Area) {
 			'o',
 			SolidPieceStyle(es.holdPiece))
 	}
+}
 
-	for i := 0; i < NUM_NEXT_PIECES; i++ {
-		px := rr.X
-		py := rr.Y + (i+1)*4
-		es.DrawPiece(
-			Pieces[es.nextPieces[i]][0],
-			px, py,
-			'o',
-			SolidPieceStyle(es.nextPieces[i]))
+func (es *EngineState) DrawScore(rr Area) {
+	SetString(
+		rr.X,
+		rr.Y,
+		fmt.Sprintf("SCORE: %d", es.score),
+		defStyle)
+	SetString(
+		rr.X,
+		rr.Y+2,
+		fmt.Sprintf("LINES: %d", es.lines),
+		defStyle)
+
+	if es.combo > 1 {
+		SetString(
+			rr.X,
+			rr.Y+4,
+			fmt.Sprintf("%dx COMBO", es.combo),
+			defStyle)
 	}
 }
 
@@ -627,6 +668,7 @@ func (es *EngineState) ClearLines() {
 	}
 
 	// Scoring
+	es.lines += int64(len(lines))
 	var lineScore int
 	switch len(lines) {
 	case 0:
