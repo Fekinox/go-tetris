@@ -8,13 +8,14 @@ import (
 )
 
 const NUM_PARTICLES = 256
+const MIN_VISIBLE_INTENSITY = 0.05
 
 var PARTICLE_LEVELS = []rune(
 	"..--**%%##",
 )
 
 type Particle struct {
-	Intensity float32
+	Intensity float64
 	Style     tcell.Style
 	X         int
 	Y         int
@@ -25,7 +26,7 @@ func (p Particle) GetRune() rune {
 		0,
 		min(
 			len(PARTICLE_LEVELS)-1,
-			int(p.Intensity*float32(len(PARTICLE_LEVELS))),
+			int(p.Intensity*float64(len(PARTICLE_LEVELS))),
 		),
 	)
 	return PARTICLE_LEVELS[v]
@@ -36,11 +37,11 @@ type ParticleSystem struct {
 	head            int
 	tail            int
 	curParticles    int
-	intensityJitter float32
+	intensityJitter float64
 	rand            *rand.Rand
 }
 
-func InitParticles(intensityJitter float32) ParticleSystem {
+func InitParticles(intensityJitter float64) ParticleSystem {
 	return ParticleSystem{
 		Particles:       make([]Particle, NUM_PARTICLES),
 		intensityJitter: intensityJitter,
@@ -51,16 +52,17 @@ func InitParticles(intensityJitter float32) ParticleSystem {
 func (ps *ParticleSystem) Update() {
 	for i := ps.head; i != ps.tail; i = (i + 1) % NUM_PARTICLES {
 		p := &ps.Particles[i]
-		p.Intensity -= 2.0 * float32(UPDATE_TICK_RATE_MS) / 1000.0
 		if p.Intensity < 0 {
 			ps.KillParticle(i)
 		}
+		p.Intensity -= 2.0 * float64(UPDATE_TICK_RATE_MS) / 1000.0
 	}
 }
 
 func (ps *ParticleSystem) Draw(rr Area) {
 	for i := ps.head; i != ps.tail; i = (i + 1) % NUM_PARTICLES {
 		p := ps.Particles[i]
+		if p.Intensity < MIN_VISIBLE_INTENSITY { continue }
 		Screen.SetContent(
 			rr.X+p.X,
 			rr.Y+p.Y,
@@ -70,7 +72,8 @@ func (ps *ParticleSystem) Draw(rr Area) {
 }
 
 func (ps *ParticleSystem) SpawnParticle(p Particle) {
-	p.Intensity += (2*ps.rand.Float32() - 1.0) * ps.intensityJitter
+	if p.Intensity < MIN_VISIBLE_INTENSITY { return }
+	p.Intensity += (2*ps.rand.Float64() - 1.0) * ps.intensityJitter
 
 	ps.Particles[ps.tail] = p
 	if ps.curParticles == NUM_PARTICLES {

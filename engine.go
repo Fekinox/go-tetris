@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math"
 	"fmt"
 	"time"
 
@@ -575,11 +576,17 @@ func (es *EngineState) GravityDrop() {
 }
 
 func (es *EngineState) HardDrop() {
-	es.DownDashParticles(
+	// es.DownDashParticles(
+	// 	es.cpGrid,
+	// 	es.cpIdx,
+	// 	es.cpX,
+	// 	es.cpY, es.hardDropHeight,
+	// )
+	es.DashParticles(
 		es.cpGrid,
 		es.cpIdx,
-		es.cpX,
-		es.cpY, es.hardDropHeight,
+		es.cpX, es.cpY,
+		es.cpX, es.hardDropHeight,
 	)
 	es.cpY = es.hardDropHeight
 	es.LockPiece()
@@ -760,6 +767,117 @@ func (es *EngineState) ClearLines() {
 	es.score += int64(COMBO_BASE_SCORE*comboCount) * es.level
 }
 
+var dashParticleData = MakeGrid(BOARD_WIDTH, BOARD_HEIGHT, 0.0)
+func (es *EngineState) DashParticles(
+	piece Grid[bool],
+	pieceIdx int,
+	initX, initY int,
+	finX, finY int,
+) {
+	// Reset dash particle data
+	for y := 0; y < dashParticleData.Height; y++ {
+		for x := 0; x < dashParticleData.Width; x++ {
+			dashParticleData.Set(x, y, 0.0)	
+		}	
+	}
+
+	type DashTile struct {
+		X int
+		Y int
+		Intensity float64
+	}
+
+	gridOffsetX := piece.Width / 2
+	gridOffsetY := piece.Height / 2
+
+	distance := math.Hypot(float64(initX - finX), float64(initY - finY))
+
+	deltaX := float64(initX - finX)/distance
+	deltaY := float64(initY - finY)/distance
+
+	curX := float64(finX)
+	curY := float64(finY)
+
+	for {
+		t := float64(i)/49.0
+
+		strength := 1 - min(1, t*distance/15.0)
+		strength = math.Pow(strength, 3)
+
+		curX := float64(finX) + t * float64(initX - finX)
+		curY := float64(finY) + t * float64(initY - finY)
+
+		touchingTiles := make([]DashTile, 0, 4)
+
+		floorX := math.Floor(curX)
+		floorY := math.Floor(curY)
+
+		vertDiff := curY - floorY
+		horizDiff := curX - floorX
+
+		touchingTiles = append(touchingTiles, DashTile{
+			X: int(curX),
+			Y: int(curY),
+			Intensity: (1 - vertDiff) * (1 - horizDiff),
+		})
+
+		if vertDiff > 0.1 {
+			touchingTiles = append(touchingTiles, DashTile{
+				X: int(curX),
+				Y: int(curY) + 1,
+				Intensity: vertDiff * (1 - horizDiff),
+			})
+		}
+
+		if horizDiff > 0.1 {
+			touchingTiles = append(touchingTiles, DashTile{
+				X: int(curX) + 1,
+				Y: int(curY),
+				Intensity: (1 - vertDiff) * (1 - horizDiff),
+			})
+		}
+
+		if vertDiff > 0.1 && horizDiff > 0.1 {
+			touchingTiles = append(touchingTiles, DashTile{
+				X: int(curX) + 1,
+				Y: int(curY) + 1,
+				Intensity: vertDiff * horizDiff,
+			})
+		}
+
+		for py := 0; py < piece.Height; py++ {
+			for px := 0; px < piece.Width; px++ {
+				if !piece.MustGet(px, py) { continue }
+				for _, tile := range touchingTiles {
+					posX := tile.X + px - gridOffsetX
+					posY := tile.Y + py - gridOffsetY
+					val, ok := dashParticleData.Get(posX, posY)
+					if !ok { continue }
+					dashParticleData.Set(
+						posX,
+						posY,
+						val + tile.Intensity * strength)
+				}
+			}	
+		}
+	}
+
+	// Reset dash particle data
+	for y := 0; y < dashParticleData.Height; y++ {
+		for x := 0; x < dashParticleData.Width; x++ {
+			strength := dashParticleData.MustGet(x, y)
+			es.dashParticles.SpawnParticle(
+				Particle{
+					Intensity: strength,
+					Style: defStyle.Foreground(PieceColors[pieceIdx]),
+					X: x,
+					Y: y,
+				},
+			)
+		}	
+	}
+}
+
 func (es *EngineState) DownDashParticles(
 	piece Grid[bool],
 	pieceIdx int,
@@ -791,7 +909,7 @@ func (es *EngineState) DownDashParticles(
 			if h < 0 {
 				continue
 			}
-			i := 1 - min(1, float32(finY-z-1)/15.0)
+			i := 1 - min(1, float64(finY-z-1)/15.0)
 			es.dashParticles.SpawnParticle(
 				Particle{
 					Intensity: i * i * i,
@@ -835,7 +953,7 @@ func (es *EngineState) LeftDashParticles(
 			if w < 0 {
 				continue
 			}
-			i := 1 - min(1, float32(z-finX-1)/15.0)
+			i := 1 - min(1, float64(z-finX-1)/15.0)
 			es.dashParticles.SpawnParticle(
 				Particle{
 					Intensity: i * i * i,
@@ -879,7 +997,7 @@ func (es *EngineState) RightDashParticles(
 			if w < 0 {
 				continue
 			}
-			i := 1 - min(1, float32(finX-z-1)/15.0)
+			i := 1 - min(1, float64(finX-z-1)/15.0)
 			es.dashParticles.SpawnParticle(
 				Particle{
 					Intensity: i * i * i,
