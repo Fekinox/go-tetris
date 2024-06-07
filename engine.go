@@ -364,7 +364,7 @@ func (es *EngineState) DrawScore(rr Area) {
 	SetString(
 		rr.X,
 		rr.Y+4,
-		fmt.Sprintf("LEVEL: %d", es.moveResets),
+		fmt.Sprintf("LEVEL: %d", es.level),
 		defStyle)
 
 	if es.combo > 1 {
