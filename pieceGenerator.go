@@ -45,7 +45,7 @@ func NewBagRandomizer(seed int64, levels int) BagRandomizer {
 
 func (br *BagRandomizer) shuffle() {
 	for i := len(br.bag) - 1; i > 0; i-- {
-		j := br.rand.Intn(i+1)
+		j := br.rand.Intn(i + 1)
 		tmp := br.bag[i]
 		br.bag[i] = br.bag[j]
 		br.bag[j] = tmp

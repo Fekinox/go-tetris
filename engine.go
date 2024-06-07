@@ -315,7 +315,6 @@ func (es *EngineState) DrawPiece(
 	rune rune,
 	style tcell.Style,
 ) {
-
 	for yy := 0; yy < piece.Height; yy++ {
 		for xx := 0; xx < piece.Width; xx++ {
 			if piece.MustGet(xx, yy) {
@@ -427,17 +426,16 @@ func (es *EngineState) ToggleShiftMode() {
 }
 
 func (es *EngineState) Rotate(offset int) {
-	rotationLength := len(Pieces[es.cpIdx])
-	newRotation := (es.cpRot + offset) % rotationLength
-	newRotation = (newRotation + rotationLength) % rotationLength
+	newRotation := (es.cpRot + offset) % 4
+	newRotation = (newRotation + 4) % 4
 
 	offsets := GetOffsets(es.cpIdx, es.cpRot, newRotation)
 
 	for _, os := range offsets {
 		if es.CheckCollision(
 			Pieces[es.cpIdx][newRotation],
-			es.cpX + os.X,
-			es.cpY + os.Y,
+			es.cpX+os.X,
+			es.cpY+os.Y,
 		) {
 			continue
 		}
