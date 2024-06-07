@@ -104,6 +104,7 @@ func (es *EngineState) StartGame(seed int64) {
 	gen := NewBagRandomizer(seed, 1)
 	es.grid = MakeGrid(BOARD_WIDTH, BOARD_HEIGHT, 0)
 	es.holdPiece = 8
+	es.usedHoldPiece = false
 	es.pieceGenerator = &gen
 
 	es.gravityTimer = es.fallRate
@@ -128,10 +129,10 @@ func (es *EngineState) HandleInput(ev tcell.Event) {
 		if ev.Key() == tcell.KeyUp ||
 			IsRune(ev, 'k') || IsRune(ev, 'K') ||
 			IsRune(ev, 'x') || IsRune(ev, 'X') {
-			es.RotateCW()
+			es.Rotate(1)
 		}
 		if IsRune(ev, 'z') || IsRune(ev, 'Z') {
-			es.RotateCCW()
+			es.Rotate(-1)
 		} else if IsRune(ev, 'f') || IsRune(ev, 'F') {
 			es.ToggleShiftMode()
 		} else if ev.Key() == tcell.KeyDown || IsRune(ev, 'j') || IsRune(ev, 'J') {
@@ -422,6 +423,45 @@ func (es *EngineState) ToggleShiftMode() {
 	if es.shiftMode {
 		es.SetSnapPositions()
 	}
+}
+
+func (es *EngineState) Rotate(offset int) {
+	rotationLength := len(Pieces[es.cpIdx])
+	newRotation := (es.cpRot + offset) % rotationLength
+	newRotation = (newRotation + rotationLength) % rotationLength
+
+	offsets := GetOffsets(es.cpIdx, es.cpRot, newRotation)
+
+	for _, os := range offsets {
+		if es.CheckCollision(
+			Pieces[es.cpIdx][newRotation],
+			es.cpX + os.X,
+			es.cpY + os.Y,
+		) {
+			continue
+		}
+
+		es.cpRot = newRotation
+		es.cpX += os.X
+		es.cpY += os.Y
+
+		es.cpGrid = Pieces[es.cpIdx][es.cpRot]
+		es.SetHardDropHeight()
+
+		if es.shiftMode {
+			es.SetSnapPositions()
+		}
+
+		oldAirborne := es.airborne
+		es.SetAirborne()
+
+		if !oldAirborne && !es.airborne && es.moveResets < MAX_MOVE_RESETS {
+			es.moveResets += 1
+			es.lockTimer = LOCK_DELAY
+		}
+		return
+	}
+
 }
 
 func (es *EngineState) RotateCW() {

@@ -4,21 +4,47 @@ import "github.com/gdamore/tcell/v2"
 
 var (
 	IPieces = []Grid[bool]{
-		GridFromSlice(4, 4,
-			false, false, false, false,
-			true, true, true, true,
-			false, false, false, false,
-			false, false, false, false,
+		GridFromSlice(5, 5,
+			false, false, false, false, false,
+			false, false, false, false, false,
+			false, true, true, true, true,
+			false, false, false, false, false,
+			false, false, false, false, false,
 		),
-		GridFromSlice(4, 4,
-			false, false, true, false,
-			false, false, true, false,
-			false, false, true, false,
-			false, false, true, false,
+		GridFromSlice(5, 5,
+			false, false, false, false, false,
+			false, false, true, false, false,
+			false, false, true, false, false,
+			false, false, true, false, false,
+			false, false, true, false, false,
+		),
+		GridFromSlice(5, 5,
+			false, false, false, false, false,
+			false, false, false, false, false,
+			true, true, true, true, false,
+			false, false, false, false, false,
+			false, false, false, false, false,
+		),
+		GridFromSlice(5, 5,
+			false, false, true, false, false,
+			false, false, true, false, false,
+			false, false, true, false, false,
+			false, false, true, false, false,
+			false, false, false, false, false,
 		),
 	}
 	JPieces = []Grid[bool]{
 		GridFromSlice(3, 3,
+			true, false, false,
+			true, true, true,
+			false, false, false,
+		),
+		GridFromSlice(3, 3,
+			false, true, true,
+			false, true, false,
+			false, true, false,
+		),
+		GridFromSlice(3, 3,
 			false, false, false,
 			true, true, true,
 			false, false, true,
@@ -27,20 +53,20 @@ var (
 			false, true, false,
 			false, true, false,
 			true, true, false,
-		),
-		GridFromSlice(3, 3,
-			false, false, false,
-			true, false, false,
-			true, true, true,
-		),
-		GridFromSlice(3, 3,
-			false, true, true,
-			false, true, false,
-			false, true, false,
 		),
 	}
 	LPieces = []Grid[bool]{
 		GridFromSlice(3, 3,
+			false, false, true,
+			true, true, true,
+			false, false, false,
+		),
+		GridFromSlice(3, 3,
+			false, true, false,
+			false, true, false,
+			false, true, true,
+		),
+		GridFromSlice(3, 3,
 			false, false, false,
 			true, true, true,
 			true, false, false,
@@ -50,26 +76,40 @@ var (
 			false, true, false,
 			false, true, false,
 		),
-		GridFromSlice(3, 3,
-			false, false, false,
-			false, false, true,
-			true, true, true,
-		),
-		GridFromSlice(3, 3,
-			false, true, false,
-			false, true, false,
-			false, true, true,
-		),
 	}
 	OPieces = []Grid[bool]{
-		GridFromSlice(4, 4,
-			false, false, false, false,
-			false, true, true, false,
-			false, true, true, false,
-			false, false, false, false,
+		GridFromSlice(3, 3,
+			false, true, true,
+			false, true, true,
+			false, false, false,
+		),
+		GridFromSlice(3, 3,
+			false, false, false,
+			false, true, true,
+			false, true, true,
+		),
+		GridFromSlice(3, 3,
+			false, false, false,
+			true, true, false,
+			true, true, false,
+		),
+		GridFromSlice(3, 3,
+			true, true, false,
+			true, true, false,
+			false, false, false,
 		),
 	}
 	SPieces = []Grid[bool]{
+		GridFromSlice(3, 3,
+			false, true, true,
+			true, true, false,
+			false, false, false,
+		),
+		GridFromSlice(3, 3,
+			false, true, false,
+			false, true, true,
+			false, false, true,
+		),
 		GridFromSlice(3, 3,
 			false, false, false,
 			false, true, true,
@@ -105,17 +145,123 @@ var (
 	}
 	ZPieces = []Grid[bool]{
 		GridFromSlice(3, 3,
-			false, false, false,
 			true, true, false,
 			false, true, true,
+			false, false, false,
 		),
 		GridFromSlice(3, 3,
 			false, false, true,
 			false, true, true,
 			false, true, false,
 		),
+		GridFromSlice(3, 3,
+			false, false, false,
+			true, true, false,
+			false, true, true,
+		),
+		GridFromSlice(3, 3,
+			false, true, false,
+			true, true, false,
+			true, false, false,
+		),
 	}
 )
+
+var JLSTZOffsets = [][]Position{
+	[]Position{
+		{},
+		{},
+		{},
+		{},
+	},
+	[]Position{
+		{},
+		{X: 1},
+		{},
+		{X: -1},
+	},
+	[]Position{
+		{},
+		{X: 1, Y: 1},
+		{},
+		{X: -1, Y: 1},
+	},
+	[]Position{
+		{},
+		{Y: -2},
+		{},
+		{Y: -2},
+	},
+	[]Position{
+		{},
+		{X: 1, Y: -2},
+		{},
+		{X: -1, Y: -2},
+	},
+}
+
+var IOffsets = [][]Position{
+	[]Position{
+		{},
+		{X: -1},
+		{X: -1, Y: -1},
+		{Y: -1},
+	},
+	[]Position{
+		{X: -1},
+		{},
+		{X: 1, Y: -1},
+		{Y: -1},
+	},
+	[]Position{
+		{X: 2},
+		{},
+		{X: -2, Y: -1},
+		{Y: -1},
+	},
+	[]Position{
+		{X: -1},
+		{Y: -1},
+		{X: 1},
+		{Y: 1},
+	},
+	[]Position{
+		{X: 2},
+		{Y: 2},
+		{X: -2},
+		{Y: -2},
+	},
+}
+
+var OOffsets = [][]Position{
+	[]Position{
+		{},
+		{Y: 1},
+		{X: -1, Y: 1},
+		{X: -1},
+	},
+}
+
+func GetOffsets(pieceIdx int, startRot int, endRot int) []Position {
+	positions := make([]Position, 0)
+	var offsetData [][]Position
+	if pieceIdx == 0 {
+		offsetData = IOffsets
+	} else if pieceIdx == 3 {
+		offsetData = OOffsets
+	} else {
+		offsetData = JLSTZOffsets
+	}
+
+	for _, offsetCol := range offsetData {
+		positions = append(positions, Position{
+			X: offsetCol[startRot].X - offsetCol[endRot].X,
+			Y: offsetCol[startRot].Y - offsetCol[endRot].Y,
+		})
+	}
+
+	return positions
+}
 
 var Pieces = [][]Grid[bool]{
 	IPieces,
