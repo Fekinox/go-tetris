@@ -24,6 +24,9 @@ const TETRIS_SCORE = 800
 
 const COMBO_BASE_SCORE = 50
 
+const MAX_MOVE_RESETS = 15
+const LOCK_DELAY = 120
+
 var COMBO_COUNTS = []int{
 	0, 0,
 	1, 1,
@@ -55,8 +58,11 @@ type EngineState struct {
 	cpY    int
 	cpRot  int
 
+	airborne     bool
 	gravityTimer int
 	fallRate     int
+	lockTimer    int
+	moveResets   int
 
 	pieceGenerator PieceGenerator
 
@@ -146,11 +152,22 @@ func (es *EngineState) HandleInput(ev tcell.Event) {
 
 func (es *EngineState) Update() {
 	es.dashParticles.Update()
-	es.gravityTimer -= 1
-	if es.gravityTimer <= 0 {
-		es.gravityTimer = es.fallRate
-		es.GravityDrop()
+
+	if es.airborne {
+		es.gravityTimer -= 1
+		if es.gravityTimer <= 0 {
+			es.gravityTimer = es.fallRate
+			es.GravityDrop()
+		}
+	} else {
+		// Locking
+		es.lockTimer -= 1
+		if es.lockTimer <= 0 {
+			es.LockPiece()
+			return
+		}
 	}
+
 }
 
 func (es *EngineState) Draw(lag float64) {
@@ -395,6 +412,7 @@ func (es *EngineState) GetRandomPiece() {
 	es.nextPieces[NUM_NEXT_PIECES-2] = es.pieceGenerator.NextPiece()
 
 	es.SetHardDropHeight()
+	es.SetAirborne()
 	es.shiftMode = false
 }
 
@@ -425,6 +443,14 @@ func (es *EngineState) RotateCW() {
 	if es.shiftMode {
 		es.SetSnapPositions()
 	}
+
+	oldAirborne := es.airborne
+	es.SetAirborne()
+
+	if !oldAirborne && !es.airborne && es.moveResets < MAX_MOVE_RESETS {
+		es.moveResets += 1
+		es.lockTimer = LOCK_DELAY
+	}
 }
 
 func (es *EngineState) RotateCCW() {
@@ -450,6 +476,14 @@ func (es *EngineState) RotateCCW() {
 
 	if es.shiftMode {
 		es.SetSnapPositions()
+	}
+
+	oldAirborne := es.airborne
+	es.SetAirborne()
+
+	if !oldAirborne && !es.airborne && es.moveResets < MAX_MOVE_RESETS {
+		es.moveResets += 1
+		es.lockTimer = LOCK_DELAY
 	}
 }
 
@@ -490,6 +524,13 @@ func (es *EngineState) MovePiece(dx int) {
 	es.cpX += dx
 
 	es.SetHardDropHeight()
+	oldAirborne := es.airborne
+	es.SetAirborne()
+
+	if !oldAirborne && !es.airborne && es.moveResets < MAX_MOVE_RESETS {
+		es.moveResets += 1
+		es.lockTimer = LOCK_DELAY
+	}
 }
 
 func (es *EngineState) SoftDrop() {
@@ -503,19 +544,18 @@ func (es *EngineState) SoftDrop() {
 		es.cpY = es.hardDropHeight
 		es.shiftMode = false
 		es.gravityTimer = es.fallRate
+		es.SetAirborne()
 		return
 	}
-	if es.CheckCollision(
-		es.cpGrid,
-		es.cpX,
-		es.cpY+1,
-	) {
+
+	if !es.airborne {
 		es.LockPiece()
 		return
 	}
 
 	es.cpY += 1
 	es.gravityTimer = es.fallRate
+	es.SetAirborne()
 }
 
 func (es *EngineState) GravityDrop() {
@@ -524,7 +564,6 @@ func (es *EngineState) GravityDrop() {
 		es.cpX,
 		es.cpY+1,
 	) {
-		es.LockPiece()
 		return
 	}
 
@@ -533,6 +572,8 @@ func (es *EngineState) GravityDrop() {
 	if es.shiftMode {
 		es.SetSnapPositions()
 	}
+
+	es.SetAirborne()
 }
 
 func (es *EngineState) HardDrop() {
@@ -562,6 +603,8 @@ func (es *EngineState) SwapHoldPiece() {
 		es.cpY = 2
 		es.SetHardDropHeight()
 		es.shiftMode = false
+
+		es.SetAirborne()
 	}
 
 	es.usedHoldPiece = true
@@ -604,6 +647,21 @@ func (es *EngineState) LockPiece() {
 	es.usedHoldPiece = false
 	es.ClearLines()
 	es.GetRandomPiece()
+}
+
+func (es *EngineState) SetAirborne() {
+	oldAirborne := es.airborne
+	newAirborne := !es.CheckCollision(es.cpGrid, es.cpX, es.cpY+1)
+	es.airborne = newAirborne
+	// if you were previously in the air and now you aren't in the air,
+	// start the lock timer
+	if oldAirborne && !newAirborne {
+		es.lockTimer = LOCK_DELAY
+	}
+
+	if newAirborne {
+		es.moveResets = 0
+	}
 }
 
 func (es *EngineState) SetHardDropHeight() {
