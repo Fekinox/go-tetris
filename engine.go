@@ -12,7 +12,8 @@ const UPDATE_TICK_RATE_MS float64 = 1000.0 / 240.0
 const BOARD_WIDTH = 10
 const BOARD_HEIGHT = 22
 
-const INITIAL_FALL_RATE = 60
+const MIN_SPEED = 120
+const MAX_SPEED = 20
 
 const NUM_NEXT_PIECES = 5
 
@@ -76,13 +77,14 @@ type EngineState struct {
 	score int64
 	lines int64
 	combo int
+	level int64
+	startingLevel int64
 }
 
 func NewEngineState() *EngineState {
 	es := EngineState{
 		LastUpdateDuration: UPDATE_TICK_RATE_MS,
 
-		fallRate:   INITIAL_FALL_RATE,
 		nextPieces: make([]int, NUM_NEXT_PIECES),
 		holdPiece:  8,
 	}
@@ -104,6 +106,11 @@ func (es *EngineState) StartGame(seed int64) {
 	es.score = 0
 	es.lines = 0
 	es.combo = 0
+	es.startingLevel = 15
+	es.level = es.startingLevel
+	speedFactor := int(min(14, es.level-1))
+	es.fallRate =
+		MIN_SPEED + speedFactor * (MAX_SPEED - MIN_SPEED)/14
 
 	es.FillNextPieces()
 	es.GetRandomPiece()
@@ -338,11 +345,16 @@ func (es *EngineState) DrawScore(rr Area) {
 		rr.Y+2,
 		fmt.Sprintf("LINES: %d", es.lines),
 		defStyle)
+	SetString(
+		rr.X,
+		rr.Y+4,
+		fmt.Sprintf("LEVEL: %d", es.fallRate),
+		defStyle)
 
 	if es.combo > 1 {
 		SetString(
 			rr.X,
-			rr.Y+4,
+			rr.Y+6,
 			fmt.Sprintf("%dx COMBO", es.combo),
 			defStyle)
 	}
@@ -671,27 +683,35 @@ func (es *EngineState) ClearLines() {
 		}
 	}
 
+	// Lines and levels
+	if len(lines) > 0 {
+		es.lines += int64(len(lines))
+		es.level = (es.lines / 10) + es.startingLevel
+		speedFactor := int(min(14, es.level-1))
+		es.fallRate =
+			MIN_SPEED + speedFactor * (MAX_SPEED - MIN_SPEED)/14
+	}
+
 	// Scoring
-	es.lines += int64(len(lines))
-	var lineScore int
+	var lineScore int64
 	switch len(lines) {
 	case 0:
 		es.combo = 0
 	case 1:
 		es.combo += 1
-		lineScore = SINGLE_SCORE
+		lineScore = SINGLE_SCORE * es.level
 	case 2:
 		es.combo += 1
-		lineScore = DOUBLE_SCORE
+		lineScore = DOUBLE_SCORE * es.level
 	case 3:
 		es.combo += 1
-		lineScore = TRIPLE_SCORE
+		lineScore = TRIPLE_SCORE * es.level
 	default:
 		es.combo += 1
-		lineScore = TETRIS_SCORE
+		lineScore = TETRIS_SCORE * es.level
 	}
 
-	es.score += int64(lineScore)
+	es.score += lineScore
 	var comboCount int
 	if comboCount >= len(COMBO_COUNTS) {
 		comboCount = 5
@@ -699,7 +719,7 @@ func (es *EngineState) ClearLines() {
 		comboCount = COMBO_COUNTS[es.combo]
 	}
 
-	es.score += int64(COMBO_BASE_SCORE * comboCount)
+	es.score += int64(COMBO_BASE_SCORE * comboCount) * es.level
 }
 
 func (es *EngineState) DownDashParticles(
