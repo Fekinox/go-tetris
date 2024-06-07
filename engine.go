@@ -101,6 +101,10 @@ func (es *EngineState) StartGame(seed int64) {
 	es.gravityTimer = es.fallRate
 	es.dashParticles = InitParticles(0.1)
 
+	es.score = 0
+	es.lines = 0
+	es.combo = 0
+
 	es.FillNextPieces()
 	es.GetRandomPiece()
 }
