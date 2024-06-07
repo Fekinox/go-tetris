@@ -59,7 +59,7 @@ type EngineState struct {
 }
 
 func InitEngineState() *EngineState {
-	gen := NewBagRandomizer(time.Now().UnixNano(), 2)
+	gen := NewBagRandomizer(time.Now().UnixNano(), 1)
 	es := EngineState{
 		LastUpdateDuration: UPDATE_TICK_RATE_MS,
 
