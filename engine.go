@@ -508,6 +508,7 @@ func (es *EngineState) MovePiece(dx int) {
 
 		es.shiftMode = false
 		es.SetHardDropHeight()
+		es.SetAirborne()
 		return
 	}
 	if es.CheckCollision(
