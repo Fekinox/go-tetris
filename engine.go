@@ -364,7 +364,7 @@ func (es *EngineState) DrawScore(rr Area) {
 	SetString(
 		rr.X,
 		rr.Y+4,
-		fmt.Sprintf("LEVEL: %d", es.level),
+		fmt.Sprintf("LEVEL: %d", es.moveResets),
 		defStyle)
 
 	if es.combo > 1 {
@@ -414,6 +414,7 @@ func (es *EngineState) GetRandomPiece() {
 
 	es.SetHardDropHeight()
 	es.SetAirborne()
+	es.floorKicked = false
 	es.shiftMode = false
 }
 
@@ -452,12 +453,27 @@ func (es *EngineState) Rotate(offset int) {
 		}
 
 		oldAirborne := es.airborne
-		es.SetAirborne()
+		newAirborne := !es.CheckCollision(es.cpGrid, es.cpX, es.cpY+1)
 
-		if !oldAirborne && !es.airborne && es.moveResets < MAX_MOVE_RESETS {
+		// If you were previously not airborne, but now you are airborne,
+		// count it as a floor kick. If the piece has already floor kicked,
+		// soft-drop it back down.
+		if !oldAirborne && newAirborne {
+			if es.floorKicked {
+				es.cpY = es.hardDropHeight
+				es.gravityTimer = es.fallRate
+				newAirborne = false
+			}
+
+			es.floorKicked = true
+		}
+
+		if !oldAirborne && !newAirborne && es.moveResets < MAX_MOVE_RESETS {
 			es.moveResets += 1
 			es.lockTimer = LOCK_DELAY
 		}
+
+		es.airborne = newAirborne
 		return
 	}
 
@@ -581,6 +597,7 @@ func (es *EngineState) SwapHoldPiece() {
 		es.shiftMode = false
 
 		es.SetAirborne()
+		es.floorKicked = false
 	}
 
 	es.usedHoldPiece = true
