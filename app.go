@@ -29,7 +29,7 @@ func NewApp() App {
 	Screen.Clear()
 
 	return App{
-		EngineState:  InitEngineState(),
+		EngineState:  NewEngineState(),
 		DefaultStyle: tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorReset),
 	}
 }

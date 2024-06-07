@@ -15,6 +15,20 @@ const INITIAL_FALL_RATE = 60
 
 const NUM_NEXT_PIECES = 5
 
+const SINGLE_SCORE = 100
+const DOUBLE_SCORE = 300
+const TRIPLE_SCORE = 500
+const TETRIS_SCORE = 800
+
+const COMBO_BASE_SCORE = 50
+var COMBO_COUNTS = []int{
+	0, 0,
+	1, 1,
+	2, 3,
+	3, 3,
+	4, 4, 4,
+}
+
 func IsRune(ev *tcell.EventKey, r rune) bool {
 	return (ev.Key() == tcell.KeyRune && ev.Rune() == r)
 }
@@ -56,29 +70,36 @@ type EngineState struct {
 	hardDropLeftSnapHeight  int
 	hardDropRightSnapHeight int
 	hardDropHeight          int
+
+	score int64
+	combo int
 }
 
-func InitEngineState() *EngineState {
-	gen := NewBagRandomizer(time.Now().UnixNano(), 1)
+func NewEngineState() *EngineState {
 	es := EngineState{
 		LastUpdateDuration: UPDATE_TICK_RATE_MS,
 
-		grid:           MakeGrid(BOARD_WIDTH, BOARD_HEIGHT, 0),
-		pieceGenerator: &gen,
-		cpX:            BOARD_WIDTH / 2,
-		cpY:            3,
-		fallRate:       INITIAL_FALL_RATE,
-		nextPieces:     make([]int, NUM_NEXT_PIECES),
-		holdPiece:      8,
+		fallRate:   INITIAL_FALL_RATE,
+		nextPieces: make([]int, NUM_NEXT_PIECES),
+		holdPiece:  8,
 	}
+
+	es.StartGame(time.Now().UnixNano())
+
+	return &es
+}
+
+func (es *EngineState) StartGame(seed int64) {
+	gen := NewBagRandomizer(seed, 1)
+	es.grid = MakeGrid(BOARD_WIDTH, BOARD_HEIGHT, 0)
+	es.holdPiece = 8
+	es.pieceGenerator = &gen
 
 	es.gravityTimer = es.fallRate
 	es.dashParticles = InitParticles(0.1)
 
 	es.FillNextPieces()
 	es.GetRandomPiece()
-
-	return &es
 }
 
 func (es *EngineState) HandleInput(ev tcell.Event) {
@@ -384,9 +405,7 @@ func (es *EngineState) RotateCCW() {
 }
 
 func (es *EngineState) HandleReset() {
-	es.holdPiece = 8
-	es.grid = MakeGrid(BOARD_WIDTH, BOARD_HEIGHT, 0)
-	es.GetRandomPiece()
+	es.StartGame(time.Now().UnixNano())
 }
 
 func (es *EngineState) MovePiece(dx int) {
@@ -594,6 +613,7 @@ func (es *EngineState) ClearLines() {
 		}
 	}
 
+	// For each line row found, pull all the tiles above it down.
 	for _, lidx := range lines {
 		for y := lidx; y >= 0; y-- {
 			for x := 0; x < es.grid.Width; x++ {
@@ -605,6 +625,35 @@ func (es *EngineState) ClearLines() {
 			}
 		}
 	}
+
+	// Scoring
+	var lineScore int
+	switch len(lines) {
+	case 0:
+		es.combo = 0
+	case 1:
+		es.combo += 1
+		lineScore = SINGLE_SCORE
+	case 2:
+		es.combo += 1
+		lineScore = DOUBLE_SCORE
+	case 3:
+		es.combo += 1
+		lineScore = TRIPLE_SCORE
+	default:
+		es.combo += 1
+		lineScore = TETRIS_SCORE
+	}
+
+	es.score += int64(lineScore)
+	var comboCount int
+	if comboCount >= len(COMBO_COUNTS) {
+		comboCount = 5
+	} else {
+		comboCount = COMBO_COUNTS[es.combo]
+	}
+
+	es.score += int64(COMBO_BASE_SCORE * comboCount)
 }
 
 func (es *EngineState) DownDashParticles(
