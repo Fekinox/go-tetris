@@ -1,8 +1,8 @@
 package main
 
 import (
-	"math"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -129,23 +129,23 @@ func (es *EngineState) HandleInput(ev tcell.Event) {
 	switch ev := ev.(type) {
 	case *tcell.EventKey:
 		if ev.Key() == tcell.KeyUp ||
-			IsRune(ev, 'k') || IsRune(ev, 'K') ||
-			IsRune(ev, 'x') || IsRune(ev, 'X') {
+			IsRune(ev, 'w') || IsRune(ev, 'W') ||
+			IsRune(ev, 'k') || IsRune(ev, 'K') {
 			es.Rotate(1)
 		}
-		if IsRune(ev, 'z') || IsRune(ev, 'Z') {
+		if IsRune(ev, 'j') || IsRune(ev, 'J') {
 			es.Rotate(-1)
 		} else if IsRune(ev, 'f') || IsRune(ev, 'F') {
 			es.ToggleShiftMode()
-		} else if ev.Key() == tcell.KeyDown || IsRune(ev, 'j') || IsRune(ev, 'J') {
+		} else if ev.Key() == tcell.KeyDown || IsRune(ev, 's') || IsRune(ev, 'S') {
 			es.SoftDrop()
-		} else if ev.Key() == tcell.KeyLeft || IsRune(ev, 'h') || IsRune(ev, 'H') {
+		} else if ev.Key() == tcell.KeyLeft || IsRune(ev, 'a') || IsRune(ev, 'A') {
 			es.MovePiece(-1)
-		} else if ev.Key() == tcell.KeyRight || IsRune(ev, 'l') || IsRune(ev, 'L') {
+		} else if ev.Key() == tcell.KeyRight || IsRune(ev, 'd') || IsRune(ev, 'D') {
 			es.MovePiece(1)
 		} else if IsRune(ev, ' ') {
 			es.HardDrop()
-		} else if IsRune(ev, 'c') || IsRune(ev, 'C') {
+		} else if IsRune(ev, ';') {
 			es.SwapHoldPiece()
 		} else if IsRune(ev, 'r') || IsRune(ev, 'R') {
 			es.HandleReset()
@@ -492,18 +492,18 @@ func (es *EngineState) HandleReset() {
 func (es *EngineState) MovePiece(dx int) {
 	if es.shiftMode {
 		if dx < 0 {
-			es.LeftDashParticles(
+			es.DashParticles(
 				es.cpGrid,
 				es.cpIdx,
-				es.cpY,
-				es.cpX, es.leftSnapPosition)
+				es.cpX, es.cpY,
+				es.leftSnapPosition, es.cpY)
 			es.cpX = es.leftSnapPosition
 		} else {
-			es.RightDashParticles(
+			es.DashParticles(
 				es.cpGrid,
 				es.cpIdx,
-				es.cpY,
-				es.cpX, es.rightSnapPosition)
+				es.cpX, es.cpY,
+				es.rightSnapPosition, es.cpY)
 			es.cpX = es.rightSnapPosition
 		}
 
@@ -534,12 +534,11 @@ func (es *EngineState) MovePiece(dx int) {
 
 func (es *EngineState) SoftDrop() {
 	if es.shiftMode {
-		es.DownDashParticles(
+		es.DashParticles(
 			es.cpGrid,
 			es.cpIdx,
-			es.cpX,
-			es.cpY, es.hardDropHeight,
-		)
+			es.cpX, es.cpY,
+			es.cpX, es.hardDropHeight)
 		es.cpY = es.hardDropHeight
 		es.shiftMode = false
 		es.gravityTimer = es.fallRate
@@ -576,12 +575,6 @@ func (es *EngineState) GravityDrop() {
 }
 
 func (es *EngineState) HardDrop() {
-	// es.DownDashParticles(
-	// 	es.cpGrid,
-	// 	es.cpIdx,
-	// 	es.cpX,
-	// 	es.cpY, es.hardDropHeight,
-	// )
 	es.DashParticles(
 		es.cpGrid,
 		es.cpIdx,
@@ -768,6 +761,7 @@ func (es *EngineState) ClearLines() {
 }
 
 var dashParticleData = MakeGrid(BOARD_WIDTH, BOARD_HEIGHT, 0.0)
+
 func (es *EngineState) DashParticles(
 	piece Grid[bool],
 	pieceIdx int,
@@ -777,89 +771,70 @@ func (es *EngineState) DashParticles(
 	// Reset dash particle data
 	for y := 0; y < dashParticleData.Height; y++ {
 		for x := 0; x < dashParticleData.Width; x++ {
-			dashParticleData.Set(x, y, 0.0)	
-		}	
-	}
-
-	type DashTile struct {
-		X int
-		Y int
-		Intensity float64
+			dashParticleData.Set(x, y, 0.0)
+		}
 	}
 
 	gridOffsetX := piece.Width / 2
 	gridOffsetY := piece.Height / 2
 
-	distance := math.Hypot(float64(initX - finX), float64(initY - finY))
+	distance := math.Hypot(float64(initX-finX), float64(initY-finY))
 
-	deltaX := float64(initX - finX)/distance
-	deltaY := float64(initY - finY)/distance
+	deltaX := float64(initX-finX) / distance
+	deltaY := float64(initY-finY) / distance
 
-	curX := float64(finX)
-	curY := float64(finY)
+	prevFloorX := -1
+	prevFloorY := -1
 
-	for {
-		t := float64(i)/49.0
+	t := 0.0
+	done := false
 
-		strength := 1 - min(1, t*distance/15.0)
+	for !done {
+		if t-distance > 0.01 {
+			t = distance
+			done = true
+		}
+
+		f := t / distance
+		strength := 1 - min(1, f*distance/15.0)
 		strength = math.Pow(strength, 3)
 
-		curX := float64(finX) + t * float64(initX - finX)
-		curY := float64(finY) + t * float64(initY - finY)
+		curX := float64(finX) + t*deltaX
+		curY := float64(finY) + t*deltaY
 
-		touchingTiles := make([]DashTile, 0, 4)
+		floorX := int(math.Floor(curX))
+		floorY := int(math.Floor(curY))
 
-		floorX := math.Floor(curX)
-		floorY := math.Floor(curY)
-
-		vertDiff := curY - floorY
-		horizDiff := curX - floorX
-
-		touchingTiles = append(touchingTiles, DashTile{
-			X: int(curX),
-			Y: int(curY),
-			Intensity: (1 - vertDiff) * (1 - horizDiff),
-		})
-
-		if vertDiff > 0.1 {
-			touchingTiles = append(touchingTiles, DashTile{
-				X: int(curX),
-				Y: int(curY) + 1,
-				Intensity: vertDiff * (1 - horizDiff),
-			})
+		// First case
+		dirty := true
+		var stamp Grid[bool]
+		if prevFloorX == -1 || prevFloorY == -1 {
+			stamp = piece
+		} else if floorX != prevFloorX || floorY != prevFloorY {
+			stamp = ShiftedDifference(piece, floorX-prevFloorX, floorY-prevFloorY)
+		} else {
+			dirty = false
 		}
 
-		if horizDiff > 0.1 {
-			touchingTiles = append(touchingTiles, DashTile{
-				X: int(curX) + 1,
-				Y: int(curY),
-				Intensity: (1 - vertDiff) * (1 - horizDiff),
-			})
-		}
-
-		if vertDiff > 0.1 && horizDiff > 0.1 {
-			touchingTiles = append(touchingTiles, DashTile{
-				X: int(curX) + 1,
-				Y: int(curY) + 1,
-				Intensity: vertDiff * horizDiff,
-			})
-		}
-
-		for py := 0; py < piece.Height; py++ {
-			for px := 0; px < piece.Width; px++ {
-				if !piece.MustGet(px, py) { continue }
-				for _, tile := range touchingTiles {
-					posX := tile.X + px - gridOffsetX
-					posY := tile.Y + py - gridOffsetY
-					val, ok := dashParticleData.Get(posX, posY)
-					if !ok { continue }
+		if dirty {
+			for py := 0; py < stamp.Height; py++ {
+				for px := 0; px < stamp.Width; px++ {
+					if !piece.MustGet(px, py) {
+						continue
+					}
+					posX := floorX + px - gridOffsetX
+					posY := floorY + py - gridOffsetY
 					dashParticleData.Set(
 						posX,
 						posY,
-						val + tile.Intensity * strength)
+						strength)
 				}
-			}	
+			}
 		}
+
+		prevFloorX = floorX
+		prevFloorY = floorY
+		t += 1
 	}
 
 	// Reset dash particle data
@@ -869,141 +844,9 @@ func (es *EngineState) DashParticles(
 			es.dashParticles.SpawnParticle(
 				Particle{
 					Intensity: strength,
-					Style: defStyle.Foreground(PieceColors[pieceIdx]),
-					X: x,
-					Y: y,
-				},
-			)
-		}	
-	}
-}
-
-func (es *EngineState) DownDashParticles(
-	piece Grid[bool],
-	pieceIdx int,
-	x int,
-	initY, finY int,
-) {
-	gridOffsetX := piece.Width / 2
-	gridOffsetY := piece.Height / 2
-
-	blockTops := make([]int, piece.Width)
-	for x := 0; x < piece.Width; x++ {
-		found := false
-	topFinder:
-		for y := 0; y < piece.Height; y++ {
-			if piece.MustGet(x, y) {
-				blockTops[x] = y
-				found = true
-				break topFinder
-			}
-		}
-
-		if !found {
-			blockTops[x] = -1
-		}
-	}
-
-	for z := finY - 1; z > initY; z-- {
-		for dx, h := range blockTops {
-			if h < 0 {
-				continue
-			}
-			i := 1 - min(1, float64(finY-z-1)/15.0)
-			es.dashParticles.SpawnParticle(
-				Particle{
-					Intensity: i * i * i,
 					Style:     defStyle.Foreground(PieceColors[pieceIdx]),
-					X:         dx + x - gridOffsetX,
-					Y:         z + h - gridOffsetY,
-				},
-			)
-		}
-	}
-}
-
-func (es *EngineState) LeftDashParticles(
-	piece Grid[bool],
-	pieceIdx int,
-	y int,
-	initX, finX int,
-) {
-	gridOffsetX := piece.Width / 2
-	gridOffsetY := piece.Height / 2
-
-	blockRightEdges := make([]int, piece.Height)
-	for y := 0; y < piece.Height; y++ {
-		found := false
-	topFinder:
-		for x := piece.Width - 1; x >= 0; x-- {
-			if piece.MustGet(x, y) {
-				blockRightEdges[y] = x
-				found = true
-				break topFinder
-			}
-		}
-
-		if !found {
-			blockRightEdges[y] = -1
-		}
-	}
-
-	for z := finX + 1; z <= initX; z++ {
-		for dy, w := range blockRightEdges {
-			if w < 0 {
-				continue
-			}
-			i := 1 - min(1, float64(z-finX-1)/15.0)
-			es.dashParticles.SpawnParticle(
-				Particle{
-					Intensity: i * i * i,
-					Style:     defStyle.Foreground(PieceColors[pieceIdx]),
-					X:         z + w - gridOffsetX,
-					Y:         dy + y - gridOffsetY,
-				},
-			)
-		}
-	}
-}
-
-func (es *EngineState) RightDashParticles(
-	piece Grid[bool],
-	pieceIdx int,
-	y int,
-	initX, finX int,
-) {
-	gridOffsetX := piece.Width / 2
-	gridOffsetY := piece.Height / 2
-
-	blockLeftEdges := make([]int, piece.Width)
-	for y := 0; y < piece.Height; y++ {
-		found := false
-	topFinder:
-		for x := 0; x < piece.Width; x++ {
-			if piece.MustGet(x, y) {
-				blockLeftEdges[y] = x
-				found = true
-				break topFinder
-			}
-		}
-
-		if !found {
-			blockLeftEdges[y] = -1
-		}
-	}
-
-	for z := finX - 1; z > initX; z-- {
-		for dy, w := range blockLeftEdges {
-			if w < 0 {
-				continue
-			}
-			i := 1 - min(1, float64(finX-z-1)/15.0)
-			es.dashParticles.SpawnParticle(
-				Particle{
-					Intensity: i * i * i,
-					Style:     defStyle.Foreground(PieceColors[pieceIdx]),
-					X:         z + w - gridOffsetX,
-					Y:         dy + y - gridOffsetY,
+					X:         x,
+					Y:         y,
 				},
 			)
 		}

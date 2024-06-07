@@ -127,3 +127,10 @@ func (g *Grid[T]) ShallowClone() Grid[T] {
 		return g.MustGet(x, y)
 	})
 }
+
+func ShiftedDifference(g Grid[bool], dx, dy int) Grid[bool] {
+	return MakeGridWith(g.Width, g.Height, func(x, y int) bool {
+		valAtOldPos, outOfBoundsAtOldPos := g.Get(x-dx, y-dy)
+		return g.MustGet(x, y) && (!valAtOldPos || outOfBoundsAtOldPos)
+	})
+}
