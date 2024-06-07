@@ -106,7 +106,7 @@ func (es *EngineState) StartGame(seed int64) {
 	es.score = 0
 	es.lines = 0
 	es.combo = 0
-	es.startingLevel = 15
+	es.startingLevel = 1
 	es.level = es.startingLevel
 	speedFactor := int(min(14, es.level-1))
 	es.fallRate =
@@ -348,7 +348,7 @@ func (es *EngineState) DrawScore(rr Area) {
 	SetString(
 		rr.X,
 		rr.Y+4,
-		fmt.Sprintf("LEVEL: %d", es.fallRate),
+		fmt.Sprintf("LEVEL: %d", es.level),
 		defStyle)
 
 	if es.combo > 1 {
