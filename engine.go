@@ -399,23 +399,28 @@ func (es *EngineState) FillNextPieces() {
 	}
 }
 
-func (es *EngineState) GetRandomPiece() {
-	idx := es.nextPieces[0]
+func (es *EngineState) SetPiece(idx int) {
 	es.cpIdx = idx
 	es.cpGrid = Pieces[idx][0]
 	es.cpRot = 0
 	es.cpX = BOARD_WIDTH / 2
 	es.cpY = 2
 
-	for i := 0; i < NUM_NEXT_PIECES-1; i++ {
-		es.nextPieces[i] = es.nextPieces[i+1]
-	}
-	es.nextPieces[NUM_NEXT_PIECES-2] = es.pieceGenerator.NextPiece()
-
 	es.SetHardDropHeight()
 	es.SetAirborne()
 	es.floorKicked = false
 	es.shiftMode = false
+}
+
+func (es *EngineState) GetRandomPiece() {
+	idx := es.nextPieces[0]
+
+	es.SetPiece(idx)
+
+	for i := 0; i < NUM_NEXT_PIECES-1; i++ {
+		es.nextPieces[i] = es.nextPieces[i+1]
+	}
+	es.nextPieces[NUM_NEXT_PIECES-2] = es.pieceGenerator.NextPiece()
 }
 
 func (es *EngineState) ToggleShiftMode() {
@@ -585,19 +590,10 @@ func (es *EngineState) SwapHoldPiece() {
 	}
 	tmp := es.holdPiece
 	es.holdPiece = es.cpIdx
-	es.cpIdx = tmp
-	if es.cpIdx == 8 {
+	if tmp == 8 {
 		es.GetRandomPiece()
 	} else {
-		es.cpGrid = Pieces[es.cpIdx][0]
-		es.cpRot = 0
-		es.cpX = BOARD_WIDTH / 2
-		es.cpY = 2
-		es.SetHardDropHeight()
-		es.shiftMode = false
-
-		es.SetAirborne()
-		es.floorKicked = false
+		es.SetPiece(tmp)
 	}
 
 	es.usedHoldPiece = true
