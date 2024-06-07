@@ -10,7 +10,7 @@ import (
 const NUM_PARTICLES = 256
 
 var PARTICLE_LEVELS = []rune(
-	" ..--**%%##",
+	"..--**%%##",
 )
 
 type Particle struct {
