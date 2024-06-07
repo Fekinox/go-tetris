@@ -67,7 +67,7 @@ type EngineState struct {
 	holdPiece     int
 	usedHoldPiece bool
 
-	moveMultiplier          int
+	shiftMode               bool
 	leftSnapPosition        int
 	rightSnapPosition       int
 	hardDropLeftSnapHeight  int
@@ -126,10 +126,8 @@ func (es *EngineState) HandleInput(ev tcell.Event) {
 		}
 		if IsRune(ev, 'z') || IsRune(ev, 'Z') {
 			es.RotateCCW()
-		} else if IsRune(ev, '$') {
-			es.SetMoveMultiplier(10)
-		} else if IsDigitRune(ev) {
-			es.SetMoveMultiplier(int(ev.Rune() - '0'))
+		} else if IsRune(ev, 'f') || IsRune(ev, 'F') {
+			es.ToggleShiftMode()
 		} else if ev.Key() == tcell.KeyDown || IsRune(ev, 'j') || IsRune(ev, 'J') {
 			es.SoftDrop()
 		} else if ev.Key() == tcell.KeyLeft || IsRune(ev, 'h') || IsRune(ev, 'H') {
@@ -208,7 +206,7 @@ func (es *EngineState) Draw(lag float64) {
 	gridOffsetY := es.cpGrid.Height / 2
 
 	// Snap indicators
-	if es.moveMultiplier != 0 {
+	if es.shiftMode {
 		es.DrawPiece(
 			es.cpGrid,
 			gameArea.X+es.leftSnapPosition-gridOffsetX,
@@ -397,20 +395,14 @@ func (es *EngineState) GetRandomPiece() {
 	es.nextPieces[NUM_NEXT_PIECES-2] = es.pieceGenerator.NextPiece()
 
 	es.SetHardDropHeight()
-	es.moveMultiplier = 0
+	es.shiftMode = false
 }
 
-func (es *EngineState) SetMoveMultiplier(val int) {
-	if val == 0 || val == es.moveMultiplier {
-		es.moveMultiplier = 0
-	} else if val == 10 {
-		es.moveMultiplier = 10
-	} else {
-		es.moveMultiplier = val
-	}
+func (es *EngineState) ToggleShiftMode() {
+	es.shiftMode = !es.shiftMode
 
-	if es.moveMultiplier != 0 {
-		es.SetSnapPositions(es.moveMultiplier)
+	if es.shiftMode {
+		es.SetSnapPositions()
 	}
 }
 
@@ -430,8 +422,8 @@ func (es *EngineState) RotateCW() {
 	es.cpGrid = Pieces[es.cpIdx][es.cpRot]
 	es.SetHardDropHeight()
 
-	if es.moveMultiplier != 0 {
-		es.SetSnapPositions(es.moveMultiplier)
+	if es.shiftMode {
+		es.SetSnapPositions()
 	}
 }
 
@@ -456,8 +448,8 @@ func (es *EngineState) RotateCCW() {
 	es.cpGrid = Pieces[es.cpIdx][es.cpRot]
 	es.SetHardDropHeight()
 
-	if es.moveMultiplier != 0 {
-		es.SetSnapPositions(es.moveMultiplier)
+	if es.shiftMode {
+		es.SetSnapPositions()
 	}
 }
 
@@ -466,7 +458,7 @@ func (es *EngineState) HandleReset() {
 }
 
 func (es *EngineState) MovePiece(dx int) {
-	if es.moveMultiplier != 0 {
+	if es.shiftMode {
 		if dx < 0 {
 			es.LeftDashParticles(
 				es.cpGrid,
@@ -483,7 +475,7 @@ func (es *EngineState) MovePiece(dx int) {
 			es.cpX = es.rightSnapPosition
 		}
 
-		es.moveMultiplier = 0
+		es.shiftMode = false
 		es.SetHardDropHeight()
 		return
 	}
@@ -501,7 +493,7 @@ func (es *EngineState) MovePiece(dx int) {
 }
 
 func (es *EngineState) SoftDrop() {
-	if es.moveMultiplier == 10 {
+	if es.shiftMode {
 		es.DownDashParticles(
 			es.cpGrid,
 			es.cpIdx,
@@ -509,7 +501,7 @@ func (es *EngineState) SoftDrop() {
 			es.cpY, es.hardDropHeight,
 		)
 		es.cpY = es.hardDropHeight
-		es.moveMultiplier = 0
+		es.shiftMode = false
 		es.gravityTimer = es.fallRate
 		return
 	}
@@ -538,8 +530,8 @@ func (es *EngineState) GravityDrop() {
 
 	es.cpY += 1
 
-	if es.moveMultiplier != 0 {
-		es.SetSnapPositions(es.moveMultiplier)
+	if es.shiftMode {
+		es.SetSnapPositions()
 	}
 }
 
@@ -569,7 +561,7 @@ func (es *EngineState) SwapHoldPiece() {
 		es.cpX = BOARD_WIDTH / 2
 		es.cpY = 2
 		es.SetHardDropHeight()
-		es.moveMultiplier = 0
+		es.shiftMode = false
 	}
 
 	es.usedHoldPiece = true
@@ -623,17 +615,15 @@ func (es *EngineState) SetHardDropHeight() {
 	es.hardDropHeight = yy
 }
 
-func (es *EngineState) SetSnapPositions(distance int) {
+func (es *EngineState) SetSnapPositions() {
 	l := es.cpX
 	r := es.cpX
 
-	for lCount := 0; (distance == 10 || lCount < distance) &&
-		!es.CheckCollision(es.cpGrid, l-1, es.cpY); lCount++ {
+	for lCount := 0; !es.CheckCollision(es.cpGrid, l-1, es.cpY); lCount++ {
 		l -= 1
 	}
 
-	for rCount := 0; (distance == 10 || rCount < distance) &&
-		!es.CheckCollision(es.cpGrid, r+1, es.cpY); rCount++ {
+	for rCount := 0; !es.CheckCollision(es.cpGrid, r+1, es.cpY); rCount++ {
 		r += 1
 	}
 
