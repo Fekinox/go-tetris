@@ -81,9 +81,6 @@ func InitEngineState() *EngineState {
 	return &es
 }
 
-func (es *EngineState) ResetGame() {
-}
-
 func (es *EngineState) HandleInput(ev tcell.Event) {
 	switch ev := ev.(type) {
 	case *tcell.EventKey:
@@ -387,6 +384,7 @@ func (es *EngineState) RotateCCW() {
 }
 
 func (es *EngineState) HandleReset() {
+	es.holdPiece = 8
 	es.grid = MakeGrid(BOARD_WIDTH, BOARD_HEIGHT, 0)
 	es.GetRandomPiece()
 }
