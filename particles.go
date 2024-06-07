@@ -62,7 +62,9 @@ func (ps *ParticleSystem) Update() {
 func (ps *ParticleSystem) Draw(rr Area) {
 	for i := ps.head; i != ps.tail; i = (i + 1) % NUM_PARTICLES {
 		p := ps.Particles[i]
-		if p.Intensity < MIN_VISIBLE_INTENSITY { continue }
+		if p.Intensity < MIN_VISIBLE_INTENSITY {
+			continue
+		}
 		Screen.SetContent(
 			rr.X+p.X,
 			rr.Y+p.Y,
@@ -72,7 +74,9 @@ func (ps *ParticleSystem) Draw(rr Area) {
 }
 
 func (ps *ParticleSystem) SpawnParticle(p Particle) {
-	if p.Intensity < MIN_VISIBLE_INTENSITY { return }
+	if p.Intensity < MIN_VISIBLE_INTENSITY {
+		return
+	}
 	p.Intensity += (2*ps.rand.Float64() - 1.0) * ps.intensityJitter
 
 	ps.Particles[ps.tail] = p
