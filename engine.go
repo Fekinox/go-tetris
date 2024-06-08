@@ -205,13 +205,13 @@ func (es *EngineState) Draw(lag float64) {
 
 	nextPieceArea := Area{
 		X:     rr.X + BOARD_WIDTH + 12,
-		Y:     rr.Y + 1,
+		Y:     rr.Y + 4,
 		Width: 4,
 	}
 
 	holdPieceArea := Area{
-		X: rr.X + 1,
-		Y: rr.Y + 1,
+		X: rr.X + 3,
+		Y: rr.Y + 4,
 	}
 
 	scoreArea := Area{
@@ -334,10 +334,14 @@ func (es *EngineState) DrawPiece(
 
 func (es *EngineState) DrawNextPieces(rr Area) {
 	for i := 0; i < NUM_NEXT_PIECES; i++ {
-		px := rr.X
-		py := rr.Y + i*4
+		piece := Pieces[es.nextPieces[i]][0]
+		gridOffsetX := piece.Width / 2 + 1
+		gridOffsetY := piece.Height / 2 + 1
+
+		px := rr.X - gridOffsetX
+		py := rr.Y + i*4 - gridOffsetY
 		es.DrawPiece(
-			Pieces[es.nextPieces[i]][0],
+			piece,
 			px, py,
 			'o',
 			SolidPieceStyle(es.nextPieces[i]))
@@ -346,9 +350,13 @@ func (es *EngineState) DrawNextPieces(rr Area) {
 
 func (es *EngineState) DrawHoldPiece(rr Area) {
 	if es.holdPiece != 8 {
+		piece := Pieces[es.nextPieces[es.holdPiece]][0]
+		gridOffsetX := piece.Width / 2 + 1
+		gridOffsetY := piece.Height / 2 + 1
+
 		es.DrawPiece(
-			Pieces[es.holdPiece][0],
-			rr.X, rr.Y,
+			piece,
+			rr.X - gridOffsetX, rr.Y - gridOffsetY,
 			'o',
 			SolidPieceStyle(es.holdPiece))
 	}
