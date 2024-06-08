@@ -8,13 +8,13 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-const UPDATE_TICK_RATE_MS float64 = 1000.0 / 240.0
+const UPDATE_TICK_RATE_MS float64 = 1000.0 / 60.0
 
 const BOARD_WIDTH = 10
 const BOARD_HEIGHT = 22
 
-const MIN_SPEED = 120
-const MAX_SPEED = 20
+const MIN_SPEED = 30
+const MAX_SPEED = 5
 
 const NUM_NEXT_PIECES = 5
 
@@ -26,7 +26,7 @@ const TETRIS_SCORE = 800
 const COMBO_BASE_SCORE = 50
 
 const MAX_MOVE_RESETS = 15
-const LOCK_DELAY = 120
+const LOCK_DELAY = 30
 
 var COMBO_COUNTS = []int{
 	0, 0,
