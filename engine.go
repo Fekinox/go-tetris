@@ -222,8 +222,8 @@ func (es *EngineState) Draw(lag float64) {
 	es.DrawWell(gameArea)
 
 	es.dashParticles.Draw(gameArea)
-	gridOffsetX := es.cpGrid.Width / 2
-	gridOffsetY := es.cpGrid.Height / 2
+	gridOffsetX := es.cpGrid.Width / 2 + 1
+	gridOffsetY := es.cpGrid.Height / 2 + 1
 
 	// Snap indicators
 	if es.shiftMode {
@@ -404,6 +404,7 @@ func (es *EngineState) SetPiece(idx int) {
 	es.cpIdx = idx
 	es.cpGrid = Pieces[idx][0]
 	es.cpRot = 0
+
 	es.cpX = BOARD_WIDTH / 2
 	es.cpY = 2
 
@@ -601,8 +602,8 @@ func (es *EngineState) SwapHoldPiece() {
 }
 
 func (es *EngineState) CheckCollision(piece Grid[bool], px, py int) bool {
-	gridOffsetX := piece.Width / 2
-	gridOffsetY := piece.Height / 2
+	gridOffsetX := piece.Width / 2 + 1
+	gridOffsetY := piece.Height / 2 + 1
 
 	for yy := 0; yy < piece.Height; yy++ {
 		for xx := 0; xx < piece.Width; xx++ {
@@ -621,8 +622,8 @@ func (es *EngineState) CheckCollision(piece Grid[bool], px, py int) bool {
 }
 
 func (es *EngineState) LockPiece() {
-	gridOffsetX := es.cpGrid.Width / 2
-	gridOffsetY := es.cpGrid.Height / 2
+	gridOffsetX := es.cpGrid.Width / 2 + 1
+	gridOffsetY := es.cpGrid.Height / 2 + 1
 
 	for yy := 0; yy < es.cpGrid.Height; yy++ {
 		for xx := 0; xx < es.cpGrid.Width; xx++ {
@@ -775,8 +776,8 @@ func (es *EngineState) DashParticles(
 		}
 	}
 
-	gridOffsetX := piece.Width / 2
-	gridOffsetY := piece.Height / 2
+	gridOffsetX := piece.Width / 2 + 1
+	gridOffsetY := piece.Height / 2 + 1
 
 	distance := math.Hypot(float64(initX-finX), float64(initY-finY))
 
