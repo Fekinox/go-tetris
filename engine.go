@@ -130,10 +130,10 @@ func (es *EngineState) HandleInput(ev tcell.Event) {
 	case *tcell.EventKey:
 		if ev.Key() == tcell.KeyUp ||
 			IsRune(ev, 'w') || IsRune(ev, 'W') ||
-			IsRune(ev, 'k') || IsRune(ev, 'K') {
+			IsRune(ev, 'r') || IsRune(ev, 'R') {
 			es.Rotate(1)
 		}
-		if IsRune(ev, 'j') || IsRune(ev, 'J') {
+		if IsRune(ev, 'e') || IsRune(ev, 'E') {
 			es.Rotate(-1)
 		} else if IsRune(ev, 'f') || IsRune(ev, 'F') {
 			es.ToggleShiftMode()
@@ -147,7 +147,7 @@ func (es *EngineState) HandleInput(ev tcell.Event) {
 			es.HardDrop()
 		} else if IsRune(ev, ';') || IsRune(ev, 'c') || IsRune(ev, 'C') {
 			es.SwapHoldPiece()
-		} else if IsRune(ev, 'r') || IsRune(ev, 'R') {
+		} else if IsRune(ev, 'q') || IsRune(ev, 'Q') {
 			es.HandleReset()
 		}
 	}
@@ -304,6 +304,11 @@ func (es *EngineState) DrawWell(rr Area) {
 			rr.X+xx,
 			rr.Y+es.grid.Height,
 			'#',
+			nil, defStyle)
+		Screen.SetContent(
+			rr.X+xx,
+			rr.Y + es.grid.Height-20,
+			'.',
 			nil, defStyle)
 	}
 }
