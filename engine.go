@@ -145,7 +145,7 @@ func (es *EngineState) HandleInput(ev tcell.Event) {
 			es.MovePiece(1)
 		} else if IsRune(ev, ' ') {
 			es.HardDrop()
-		} else if IsRune(ev, ';') {
+		} else if IsRune(ev, ';') || IsRune(ev, 'c') || IsRune(ev, 'C') {
 			es.SwapHoldPiece()
 		} else if IsRune(ev, 'r') || IsRune(ev, 'R') {
 			es.HandleReset()
