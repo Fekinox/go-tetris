@@ -1,2 +1,4 @@
 go.sum
 go-tictactoe
+build
+.build.sh
