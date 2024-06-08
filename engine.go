@@ -222,22 +222,20 @@ func (es *EngineState) Draw(lag float64) {
 	es.DrawWell(gameArea)
 
 	es.dashParticles.Draw(gameArea)
-	gridOffsetX := es.cpGrid.Width / 2 + 1
-	gridOffsetY := es.cpGrid.Height / 2 + 1
 
 	// Snap indicators
 	if es.shiftMode {
 		es.DrawPiece(
 			es.cpGrid,
-			gameArea.X+es.leftSnapPosition-gridOffsetX,
-			gameArea.Y+es.cpY-gridOffsetY,
+			gameArea.X+es.leftSnapPosition,
+			gameArea.Y+es.cpY,
 			'*',
 			LightPieceStyle(es.cpIdx),
 		)
 		es.DrawPiece(
 			es.cpGrid,
-			gameArea.X+es.rightSnapPosition-gridOffsetX,
-			gameArea.Y+es.cpY-gridOffsetY,
+			gameArea.X+es.rightSnapPosition,
+			gameArea.Y+es.cpY,
 			'*',
 			LightPieceStyle(es.cpIdx),
 		)
@@ -246,8 +244,8 @@ func (es *EngineState) Draw(lag float64) {
 		if es.leftSnapPosition != es.cpX {
 			es.DrawPiece(
 				es.cpGrid,
-				gameArea.X+es.leftSnapPosition-gridOffsetX,
-				gameArea.Y+es.hardDropLeftSnapHeight-gridOffsetY,
+				gameArea.X+es.leftSnapPosition,
+				gameArea.Y+es.hardDropLeftSnapHeight,
 				'.',
 				LightPieceStyle(es.cpIdx),
 			)
@@ -256,8 +254,8 @@ func (es *EngineState) Draw(lag float64) {
 		if es.rightSnapPosition != es.cpX {
 			es.DrawPiece(
 				es.cpGrid,
-				gameArea.X+es.rightSnapPosition-gridOffsetX,
-				gameArea.Y+es.hardDropRightSnapHeight-gridOffsetY,
+				gameArea.X+es.rightSnapPosition,
+				gameArea.Y+es.hardDropRightSnapHeight,
 				'.',
 				LightPieceStyle(es.cpIdx),
 			)
@@ -267,16 +265,16 @@ func (es *EngineState) Draw(lag float64) {
 	// Hard drop indicator
 	es.DrawPiece(
 		es.cpGrid,
-		gameArea.X+es.cpX-gridOffsetX,
-		gameArea.Y+es.hardDropHeight-gridOffsetY,
+		gameArea.X+es.cpX,
+		gameArea.Y+es.hardDropHeight,
 		'+',
 		LightPieceStyle(es.cpIdx),
 	)
 
 	es.DrawPiece(
 		es.cpGrid,
-		gameArea.X+es.cpX-gridOffsetX,
-		gameArea.Y+es.cpY-gridOffsetY,
+		gameArea.X+es.cpX,
+		gameArea.Y+es.cpY,
 		'o',
 		SolidPieceStyle(es.cpIdx),
 	)
@@ -405,8 +403,11 @@ func (es *EngineState) SetPiece(idx int) {
 	es.cpGrid = Pieces[idx][0]
 	es.cpRot = 0
 
-	es.cpX = BOARD_WIDTH / 2
-	es.cpY = 2
+	gridOffsetX := es.cpGrid.Width / 2 + 1
+	gridOffsetY := es.cpGrid.Height / 2 + 1
+
+	es.cpX = BOARD_WIDTH / 2 - gridOffsetX
+	es.cpY = 2 - gridOffsetY
 
 	es.SetHardDropHeight()
 	es.SetAirborne()
@@ -602,14 +603,11 @@ func (es *EngineState) SwapHoldPiece() {
 }
 
 func (es *EngineState) CheckCollision(piece Grid[bool], px, py int) bool {
-	gridOffsetX := piece.Width / 2 + 1
-	gridOffsetY := piece.Height / 2 + 1
-
 	for yy := 0; yy < piece.Height; yy++ {
 		for xx := 0; xx < piece.Width; xx++ {
 			if piece.MustGet(xx, yy) {
-				currX := xx - gridOffsetX + px
-				currY := yy - gridOffsetY + py
+				currX := xx + px
+				currY := yy + py
 				cell, ok := es.grid.Get(currX, currY)
 				if !ok || cell != 0 {
 					return true
@@ -622,14 +620,11 @@ func (es *EngineState) CheckCollision(piece Grid[bool], px, py int) bool {
 }
 
 func (es *EngineState) LockPiece() {
-	gridOffsetX := es.cpGrid.Width / 2 + 1
-	gridOffsetY := es.cpGrid.Height / 2 + 1
-
 	for yy := 0; yy < es.cpGrid.Height; yy++ {
 		for xx := 0; xx < es.cpGrid.Width; xx++ {
 			if es.cpGrid.MustGet(xx, yy) {
-				currX := xx - gridOffsetX + es.cpX
-				currY := yy - gridOffsetY + es.cpY
+				currX := xx + es.cpX
+				currY := yy + es.cpY
 				es.grid.Set(currX, currY, es.cpIdx+1)
 			}
 		}
@@ -776,9 +771,6 @@ func (es *EngineState) DashParticles(
 		}
 	}
 
-	gridOffsetX := piece.Width / 2 + 1
-	gridOffsetY := piece.Height / 2 + 1
-
 	distance := math.Hypot(float64(initX-finX), float64(initY-finY))
 
 	deltaX := float64(initX-finX) / distance
@@ -823,8 +815,8 @@ func (es *EngineState) DashParticles(
 					if !piece.MustGet(px, py) {
 						continue
 					}
-					posX := floorX + px - gridOffsetX
-					posY := floorY + py - gridOffsetY
+					posX := floorX + px
+					posY := floorY + py
 					dashParticleData.Set(
 						posX,
 						posY,
