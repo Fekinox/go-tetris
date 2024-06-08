@@ -350,7 +350,7 @@ func (es *EngineState) DrawNextPieces(rr Area) {
 
 func (es *EngineState) DrawHoldPiece(rr Area) {
 	if es.holdPiece != 8 {
-		piece := Pieces[es.nextPieces[es.holdPiece]][0]
+		piece := Pieces[es.holdPiece][0]
 		gridOffsetX := piece.Width / 2 + 1
 		gridOffsetY := piece.Height / 2 + 1
 
