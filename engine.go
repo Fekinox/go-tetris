@@ -786,8 +786,8 @@ func (es *EngineState) DashParticles(
 
 	distance := math.Hypot(float64(initX-finX), float64(initY-finY))
 
-	deltaX := float64(initX-finX) / distance
-	deltaY := float64(initY-finY) / distance
+	deltaX := float64(finX-initX) / distance
+	deltaY := float64(finY-initY) / distance
 
 	prevFloorX := -1
 	prevFloorY := -1
@@ -802,11 +802,11 @@ func (es *EngineState) DashParticles(
 		}
 
 		f := t / distance
-		strength := 1 - min(1, f*distance/15.0)
+		strength := 1 - min(1, (1-f)*distance/20.0)
 		strength = math.Pow(strength, 3)
 
-		curX := float64(finX) + t*deltaX
-		curY := float64(finY) + t*deltaY
+		curX := float64(initX) + t*deltaX
+		curY := float64(initY) + t*deltaY
 
 		floorX := int(math.Floor(curX))
 		floorY := int(math.Floor(curY))
