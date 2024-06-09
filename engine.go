@@ -543,6 +543,12 @@ func (es *EngineState) Rotate(offset int) {
 			es.lockTimer = LOCK_DELAY
 		}
 
+		// If you are now on the ground after being airborne, start the lock
+		// timer.
+		if oldAirborne && !newAirborne {
+			es.lockTimer = LOCK_DELAY
+		}
+
 		es.airborne = newAirborne
 		return
 	}
