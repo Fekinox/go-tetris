@@ -130,10 +130,10 @@ func (es *EngineState) HandleInput(ev tcell.Event) {
 	case *tcell.EventKey:
 		if ev.Key() == tcell.KeyUp ||
 			IsRune(ev, 'w') || IsRune(ev, 'W') ||
-			IsRune(ev, 'r') || IsRune(ev, 'R') {
+			IsRune(ev, 'x') || IsRune(ev, 'X') {
 			es.Rotate(1)
 		}
-		if IsRune(ev, 'e') || IsRune(ev, 'E') {
+		if IsRune(ev, 'z') || IsRune(ev, 'Z') {
 			es.Rotate(-1)
 		} else if IsRune(ev, 'f') || IsRune(ev, 'F') {
 			es.ToggleShiftMode()
