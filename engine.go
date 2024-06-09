@@ -109,9 +109,6 @@ func (es *EngineState) StartGame(seed int64) {
 	es.usedHoldPiece = false
 	es.pieceGenerator = &gen
 
-	es.gravityTimer = es.fallRate
-	es.dashParticles = InitParticles(0.1)
-
 	es.score = 0
 	es.lines = 0
 	es.combo = 0
@@ -120,6 +117,9 @@ func (es *EngineState) StartGame(seed int64) {
 	speedFactor := int(min(14, es.level-1))
 	es.fallRate =
 		MIN_SPEED + speedFactor*(MAX_SPEED-MIN_SPEED)/14
+
+	es.gravityTimer = es.fallRate
+	es.dashParticles = InitParticles(0.1)
 
 	es.FillNextPieces()
 	es.GetRandomPiece()
