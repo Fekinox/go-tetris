@@ -11,7 +11,7 @@ import (
 const UPDATE_TICK_RATE_MS float64 = 1000.0 / 60.0
 
 const BOARD_WIDTH = 10
-const BOARD_HEIGHT = 22
+const BOARD_HEIGHT = 20
 
 const MIN_SPEED = 30
 const MAX_SPEED = 5
@@ -87,6 +87,8 @@ type EngineState struct {
 	combo         int
 	level         int64
 	startingLevel int64
+
+	gameOver		bool
 }
 
 func NewEngineState() *EngineState {
@@ -104,7 +106,7 @@ func NewEngineState() *EngineState {
 
 func (es *EngineState) StartGame(seed int64) {
 	gen := NewBagRandomizer(seed, 1)
-	es.grid = MakeGrid(BOARD_WIDTH, BOARD_HEIGHT, 0)
+	es.grid = MakeGrid(BOARD_WIDTH, BOARD_HEIGHT*2, 0)
 	es.holdPiece = 8
 	es.usedHoldPiece = false
 	es.pieceGenerator = &gen
@@ -205,7 +207,7 @@ func (es *EngineState) Draw(lag float64) {
 
 	gameArea := Area{
 		X:      rr.X + 8,
-		Y:      rr.Y + 1,
+		Y:      rr.Y + 2,
 		Width:  BOARD_WIDTH,
 		Height: BOARD_HEIGHT,
 	}
@@ -235,14 +237,14 @@ func (es *EngineState) Draw(lag float64) {
 		es.DrawPiece(
 			es.cpGrid,
 			gameArea.X+es.leftSnapPosition,
-			gameArea.Y+es.cpY,
+			gameArea.Y+es.cpY-BOARD_HEIGHT,
 			'*',
 			LightPieceStyle(es.cpIdx),
 		)
 		es.DrawPiece(
 			es.cpGrid,
 			gameArea.X+es.rightSnapPosition,
-			gameArea.Y+es.cpY,
+			gameArea.Y+es.cpY-BOARD_HEIGHT,
 			'*',
 			LightPieceStyle(es.cpIdx),
 		)
@@ -252,7 +254,7 @@ func (es *EngineState) Draw(lag float64) {
 			es.DrawPiece(
 				es.cpGrid,
 				gameArea.X+es.leftSnapPosition,
-				gameArea.Y+es.hardDropLeftSnapHeight,
+				gameArea.Y+es.hardDropLeftSnapHeight-BOARD_HEIGHT,
 				'.',
 				LightPieceStyle(es.cpIdx),
 			)
@@ -262,7 +264,7 @@ func (es *EngineState) Draw(lag float64) {
 			es.DrawPiece(
 				es.cpGrid,
 				gameArea.X+es.rightSnapPosition,
-				gameArea.Y+es.hardDropRightSnapHeight,
+				gameArea.Y+es.hardDropRightSnapHeight-BOARD_HEIGHT,
 				'.',
 				LightPieceStyle(es.cpIdx),
 			)
@@ -273,7 +275,7 @@ func (es *EngineState) Draw(lag float64) {
 	es.DrawPiece(
 		es.cpGrid,
 		gameArea.X+es.cpX,
-		gameArea.Y+es.hardDropHeight,
+		gameArea.Y+es.hardDropHeight-BOARD_HEIGHT,
 		'+',
 		LightPieceStyle(es.cpIdx),
 	)
@@ -281,7 +283,7 @@ func (es *EngineState) Draw(lag float64) {
 	es.DrawPiece(
 		es.cpGrid,
 		gameArea.X+es.cpX,
-		gameArea.Y+es.cpY,
+		gameArea.Y+es.cpY-BOARD_HEIGHT,
 		'o',
 		SolidPieceStyle(es.cpIdx),
 	)
@@ -294,7 +296,7 @@ func (es *EngineState) Draw(lag float64) {
 }
 
 func (es *EngineState) DrawWell(rr Area) {
-	for y := 0; y < es.grid.Height+1; y++ {
+	for y := 0; y < rr.Height+1; y++ {
 		Screen.SetContent(
 			rr.X-1,
 			rr.Y+y,
@@ -309,12 +311,12 @@ func (es *EngineState) DrawWell(rr Area) {
 	for xx := 0; xx < es.grid.Width; xx++ {
 		Screen.SetContent(
 			rr.X+xx,
-			rr.Y+es.grid.Height,
+			rr.Y+BOARD_HEIGHT,
 			'#',
 			nil, defStyle)
 		Screen.SetContent(
 			rr.X+xx,
-			rr.Y + es.grid.Height-20,
+			rr.Y,
 			'.',
 			nil, defStyle)
 	}
@@ -396,7 +398,7 @@ func (es *EngineState) DrawScore(rr Area) {
 }
 
 func (es *EngineState) DrawGrid(rr Area) {
-	for yy := 0; yy < es.grid.Height; yy++ {
+	for yy := BOARD_HEIGHT; yy < es.grid.Height; yy++ {
 		for xx := 0; xx < es.grid.Width; xx++ {
 			if es.grid.MustGet(xx, yy) != 0 {
 				color := PieceColors[es.grid.MustGet(xx, yy)-1]
@@ -404,7 +406,7 @@ func (es *EngineState) DrawGrid(rr Area) {
 					defStyle.Background(color).Foreground(tcell.ColorBlack)
 				Screen.SetContent(
 					rr.X+xx,
-					rr.Y+yy,
+					rr.Y+yy-BOARD_HEIGHT,
 					'o',
 					nil, style)
 			}
@@ -427,7 +429,7 @@ func (es *EngineState) SetPiece(idx int) {
 	gridOffsetY := es.cpGrid.Height / 2 + 1
 
 	es.cpX = BOARD_WIDTH / 2 - gridOffsetX
-	es.cpY = 2 - gridOffsetY
+	es.cpY = BOARD_HEIGHT - gridOffsetY
 
 	es.SetHardDropHeight()
 	es.SetAirborne()
@@ -839,7 +841,7 @@ func (es *EngineState) DashParticles(
 					posY := floorY + py
 					dashParticleData.Set(
 						posX,
-						posY,
+						posY - BOARD_HEIGHT,
 						strength)
 				}
 			}
