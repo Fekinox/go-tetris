@@ -135,19 +135,26 @@ func (es *EngineState) HandleInput(ev tcell.Event) {
 		}
 		if IsRune(ev, 'z') || IsRune(ev, 'Z') {
 			es.Rotate(-1)
-		} else if IsRune(ev, 'f') || IsRune(ev, 'F') {
+		}
+		if IsRune(ev, 'f') || IsRune(ev, 'F') {
 			es.ToggleShiftMode()
-		} else if ev.Key() == tcell.KeyDown || IsRune(ev, 's') || IsRune(ev, 'S') {
+		}
+		if ev.Key() == tcell.KeyDown || IsRune(ev, 's') || IsRune(ev, 'S') {
 			es.SoftDrop()
-		} else if ev.Key() == tcell.KeyLeft || IsRune(ev, 'a') || IsRune(ev, 'A') {
+		}
+		if ev.Key() == tcell.KeyLeft || IsRune(ev, 'a') || IsRune(ev, 'A') {
 			es.MovePiece(-1)
-		} else if ev.Key() == tcell.KeyRight || IsRune(ev, 'd') || IsRune(ev, 'D') {
+		}
+		if ev.Key() == tcell.KeyRight || IsRune(ev, 'd') || IsRune(ev, 'D') {
 			es.MovePiece(1)
-		} else if IsRune(ev, ' ') {
+		}
+		if IsRune(ev, ' ') {
 			es.HardDrop()
-		} else if IsRune(ev, ';') || IsRune(ev, 'c') || IsRune(ev, 'C') {
+		}
+		if IsRune(ev, ';') || IsRune(ev, 'c') || IsRune(ev, 'C') {
 			es.SwapHoldPiece()
-		} else if IsRune(ev, 'r') || IsRune(ev, 'R') {
+		}
+		if IsRune(ev, 'r') || IsRune(ev, 'R') {
 			es.HandleReset()
 		}
 	}
