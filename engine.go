@@ -240,7 +240,9 @@ func (es *EngineState) Draw(lag float64) {
 
 	es.DrawWell(gameArea)
 
-	es.dashParticles.Draw(gameArea)
+	if !es.gameOver {
+		es.dashParticles.Draw(gameArea)
+	}
 
 	// Snap indicators
 	if es.shiftMode && !es.gameOver {
@@ -312,6 +314,10 @@ func (es *EngineState) Draw(lag float64) {
 	es.DrawNextPieces(nextPieceArea)
 	es.DrawHoldPiece(holdPieceArea)
 	es.DrawScore(scoreArea)
+
+	if es.gameOver {
+		es.DrawGameOver(gameArea)
+	}
 }
 
 func (es *EngineState) DrawWell(rr Area) {
@@ -454,6 +460,41 @@ func (es *EngineState) DrawGrid(rr Area) {
 	}
 }
 
+func (es *EngineState) DrawGameOver(rr Area) {
+	subArea := rr.Inset(rr.Width, 4)
+	for xx := rr.Left(); xx < rr.Right(); xx++ {
+		Screen.SetContent(
+			xx,
+			subArea.Top(),
+			'-',
+			nil, defStyle)
+		Screen.SetContent(
+			xx,
+			subArea.Bottom()-1,
+			'-',
+			nil, defStyle)
+	}
+
+	FillRegion(
+		subArea.X,
+		subArea.Y+1,
+		subArea.Width,
+		subArea.Height-2,
+		' ', defStyle)
+
+	SetCenteredString(
+		subArea.X + subArea.Width/2,
+		subArea.Y + 1,
+		"GAME",
+		defStyle)
+
+	SetCenteredString(
+		subArea.X + subArea.Width/2,
+		subArea.Y + 2,
+		"OVER",
+		defStyle)
+}
+
 func (es *EngineState) FillNextPieces() {
 	for i := 0; i < NUM_NEXT_PIECES; i++ {
 		es.nextPieces[i] = es.pieceGenerator.NextPiece()
@@ -471,6 +512,7 @@ func (es *EngineState) SetPiece(idx int) {
 	es.cpX = BOARD_WIDTH/2 - gridOffsetX
 	es.cpY = BOARD_HEIGHT - gridOffsetY
 
+	es.airborne = true
 	es.SetHardDropHeight()
 	es.SetAirborne()
 	es.floorKicked = false
@@ -728,6 +770,7 @@ func (es *EngineState) SetAirborne() {
 	oldAirborne := es.airborne
 	newAirborne := !es.CheckCollision(es.cpGrid, es.cpX, es.cpY+1)
 	es.airborne = newAirborne
+
 	// if you were previously in the air and now you aren't in the air,
 	// start the lock timer
 	if oldAirborne && !newAirborne {
