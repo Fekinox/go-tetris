@@ -125,7 +125,7 @@ func (es *EngineState) StartGame(seed int64) {
 	es.gravityTimer = es.fallRate
 	es.dashParticles = InitParticles(0.1)
 
-	es.gameOver = false
+	es.gameOver = true
 
 	es.FillNextPieces()
 	es.GetRandomPiece()
@@ -371,7 +371,7 @@ func (es *EngineState) DrawNextPieces(rr Area) {
 			pieceStyle = GAME_OVER_PIECE_STYLE
 		} else {
 			pieceStyle =
-				SolidPieceStyle(es.nextPieces[i])
+				SolidPieceStyle(es.cpIdx)
 		}
 
 		px := rr.X - gridOffsetX
@@ -391,7 +391,7 @@ func (es *EngineState) DrawHoldPiece(rr Area) {
 			pieceStyle = GAME_OVER_PIECE_STYLE
 		} else {
 			pieceStyle =
-				SolidPieceStyle(es.holdPiece)
+				SolidPieceStyle(es.cpIdx)
 		}
 
 		piece := Pieces[es.holdPiece][0]
@@ -711,8 +711,6 @@ func (es *EngineState) LockPiece() {
 	}
 
 	if pieceOverTop {
-		es.gameOver = true
-		return
 	}
 
 	es.GetRandomPiece()
