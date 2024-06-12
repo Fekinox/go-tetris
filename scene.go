@@ -3,9 +3,8 @@ package main
 import "github.com/gdamore/tcell/v2"
 
 type Scene interface {
-	Init(app *App)
 	HandleEvent(evt tcell.Event)
 	HandleAction(act Action)
 	Update()
-	Draw(sw, sh int, lag float64)
+	Draw(sw, sh int, rr Area, lag float64)
 }

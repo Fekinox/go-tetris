@@ -9,11 +9,16 @@ import (
 
 type App struct {
 	CurrentScene Scene
+	NextScene    Scene
+
+	HasNextScene bool
+	WillQuit     bool
+
 	lastRenderDuration float64
 	DefaultStyle       tcell.Style
 }
 
-func NewApp() App {
+func NewApp() *App {
 	s, err := tcell.NewScreen()
 	if err != nil {
 		log.Fatalf("%+v", err)
@@ -28,11 +33,11 @@ func NewApp() App {
 	Screen.EnablePaste()
 	Screen.Clear()
 
-	app := App{
+	app := &App{
 		DefaultStyle: tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorReset),
 	}
 
-	app.SetScene(&GameScene{})
+	app.OpenMenuScene()
 
 	return app
 }
@@ -54,6 +59,15 @@ func (a *App) Loop() {
 		elapsed := float64(currTime.Sub(prevTime).Nanoseconds()) / (1000 * 1000)
 		lag += elapsed
 		prevTime = currTime
+
+		if a.NextScene != nil {
+			a.CurrentScene = a.NextScene
+			a.NextScene = nil
+		}
+
+		if a.WillQuit {
+			return
+		}
 
 		// Event handling
 		for Screen.HasPendingEvent() {
@@ -97,11 +111,34 @@ func (a *App) Draw(lag float64) {
 		return
 	}
 
-	a.CurrentScene.Draw(sw, sh, lag)
+	rr := Area{
+		X:      (sw - MIN_WIDTH) / 2,
+		Y:      (sh - MIN_HEIGHT) / 2,
+		Width:  MIN_WIDTH,
+		Height: MIN_HEIGHT,
+	}
+
+	BorderBox(Area{
+		X:      rr.X - 1,
+		Y:      rr.Y - 1,
+		Width:  rr.Width + 2,
+		Height: rr.Height + 2,
+	}, defStyle)
+
+	a.CurrentScene.Draw(sw, sh, rr, lag)
 	Screen.Show()
 }
 
-func (a *App) SetScene(scene Scene) {
-	scene.Init(a)
-	a.CurrentScene = scene
+func (a *App) OpenMenuScene() {
+	menuScene := MenuScene{}
+	menuScene.Init(a)
+
+	a.NextScene = &menuScene
+}
+
+func (a *App) OpenGameScene() {
+	gameScene := GameScene{}
+	gameScene.Init(a)
+
+	a.CurrentScene = &gameScene
 }

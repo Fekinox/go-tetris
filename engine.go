@@ -192,21 +192,7 @@ func (es *EngineState) Update() {
 
 }
 
-func (es *EngineState) Draw(sw, sh int, lag float64) {
-	rr := Area{
-		X:      (sw - MIN_WIDTH) / 2,
-		Y:      (sh - MIN_HEIGHT) / 2,
-		Width:  MIN_WIDTH,
-		Height: MIN_HEIGHT,
-	}
-
-	BorderBox(Area{
-		X:      rr.X - 1,
-		Y:      rr.Y - 1,
-		Width:  rr.Width + 2,
-		Height: rr.Height + 2,
-	}, defStyle)
-
+func (es *EngineState) Draw(sw, sh int, rr Area, lag float64) {
 	gameArea := Area{
 		X:      rr.X + 8,
 		Y:      rr.Y + 2,
