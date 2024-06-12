@@ -82,9 +82,23 @@ func (a *App) Loop() {
 		}
 
 		if dirty {
-			a.CurrentScene.Draw(lag)
+			a.Draw(lag)
 		}
 	}
+}
+
+func (a *App) Draw(lag float64) {
+	Screen.Clear()
+
+	sw, sh := Screen.Size()
+	if sw < MIN_WIDTH || sh < MIN_HEIGHT {
+		ShowResizeScreen(sw, sh, defStyle)
+		Screen.Show()
+		return
+	}
+
+	a.CurrentScene.Draw(sw, sh, lag)
+	Screen.Show()
 }
 
 func (a *App) SetScene(scene Scene) {

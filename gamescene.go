@@ -24,6 +24,6 @@ func (gs *GameScene) Update() {
 	gs.es.Update()
 }
 
-func (gs *GameScene) Draw(lag float64) {
-	gs.es.Draw(lag)
+func (gs *GameScene) Draw(sw, sh int, lag float64) {
+	gs.es.Draw(sw, sh, lag)
 }

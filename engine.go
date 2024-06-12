@@ -192,15 +192,7 @@ func (es *EngineState) Update() {
 
 }
 
-func (es *EngineState) Draw(lag float64) {
-	Screen.Clear()
-	defer Screen.Show()
-	sw, sh := Screen.Size()
-	if sw < MIN_WIDTH || sh < MIN_HEIGHT {
-		ShowResizeScreen(sw, sh, defStyle)
-		return
-	}
-
+func (es *EngineState) Draw(sw, sh int, lag float64) {
 	rr := Area{
 		X:      (sw - MIN_WIDTH) / 2,
 		Y:      (sh - MIN_HEIGHT) / 2,

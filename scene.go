@@ -7,5 +7,5 @@ type Scene interface {
 	HandleEvent(evt tcell.Event)
 	HandleAction(act Action)
 	Update()
-	Draw(lag float64)
+	Draw(sw, sh int, lag float64)
 }
