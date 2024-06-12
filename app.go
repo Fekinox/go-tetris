@@ -8,7 +8,7 @@ import (
 )
 
 type App struct {
-	EngineState        *EngineState
+	CurrentScene Scene
 	lastRenderDuration float64
 	DefaultStyle       tcell.Style
 }
@@ -28,10 +28,13 @@ func NewApp() App {
 	Screen.EnablePaste()
 	Screen.Clear()
 
-	return App{
-		EngineState:  NewEngineState(),
+	app := App{
 		DefaultStyle: tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorReset),
 	}
+
+	app.SetScene(&GameScene{})
+
+	return app
 }
 
 func (a *App) Quit() {
@@ -45,7 +48,6 @@ func (a *App) Quit() {
 func (a *App) Loop() {
 	lag := 0.0
 	prevTime := time.Now()
-	lastRender := time.Now()
 
 	for {
 		currTime := time.Now()
@@ -65,25 +67,27 @@ func (a *App) Loop() {
 				} else if ev.Key() == tcell.KeyCtrlL {
 					Screen.Sync()
 				} else {
-					a.EngineState.HandleInput(ev)
+					a.CurrentScene.HandleEvent(ev)
 				}
 			default:
-				a.EngineState.HandleInput(ev)
+				a.CurrentScene.HandleEvent(ev)
 			}
 		}
 
 		dirty := false
 		for lag >= UPDATE_TICK_RATE_MS {
 			dirty = true
-			a.EngineState.Update()
+			a.CurrentScene.Update()
 			lag -= UPDATE_TICK_RATE_MS
 		}
 
 		if dirty {
-			a.EngineState.Draw(lag)
-			currRender := time.Now()
-			a.EngineState.LastRenderDuration = float64(currRender.Sub(lastRender).Nanoseconds()) / (1000 * 1000)
-			lastRender = currRender
+			a.CurrentScene.Draw(lag)
 		}
 	}
+}
+
+func (a *App) SetScene(scene Scene) {
+	scene.Init(a)
+	a.CurrentScene = scene
 }
