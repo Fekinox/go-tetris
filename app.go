@@ -137,8 +137,8 @@ func (a *App) OpenMenuScene() {
 }
 
 func (a *App) OpenGameScene() {
-	gameScene := GameScene{}
-	gameScene.Init(a)
+	gameScene := LineClearScene{}
+	gameScene.Init(a, 40, 1)
 
 	a.CurrentScene = &gameScene
 }

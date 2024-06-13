@@ -41,5 +41,7 @@ func (lcs *LineClearScene) Update() {
 }
 
 func (lcs *LineClearScene) Draw(sw, sh int, rr Area, lag float64) {
-	lcs.es.Draw(sw, sh, rr, lag)
+	// Center the playing field
+	playingField := rr.Inset(BOARD_WIDTH, BOARD_HEIGHT+4)
+	lcs.es.Draw(sw, sh, playingField, lag)
 }

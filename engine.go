@@ -194,20 +194,20 @@ func (es *TetrisField) Update() {
 
 func (es *TetrisField) Draw(sw, sh int, rr Area, lag float64) {
 	gameArea := Area{
-		X:      rr.X + 8,
+		X:      rr.X,
 		Y:      rr.Y + 2,
 		Width:  BOARD_WIDTH,
 		Height: BOARD_HEIGHT,
 	}
 
 	nextPieceArea := Area{
-		X:     rr.X + BOARD_WIDTH + 12,
+		X:     rr.X + BOARD_WIDTH + 4,
 		Y:     rr.Y + 4,
 		Width: 4,
 	}
 
 	holdPieceArea := Area{
-		X: rr.X + 3,
+		X: rr.X - 5,
 		Y: rr.Y + 4,
 	}
 
@@ -576,7 +576,7 @@ func (es *TetrisField) Rotate(offset int) {
 }
 
 func (es *TetrisField) HandleReset() {
-	es.StartGame(time.Now().UnixNano())
+	es.StartGame(time.Now().UnixNano(), es.startingLevel)
 }
 
 func (es *TetrisField) MovePiece(dx int) {
