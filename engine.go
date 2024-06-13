@@ -89,6 +89,7 @@ type TetrisField struct {
 	combo         int
 	level         int64
 	startingLevel int64
+	frameCount	  int64
 
 	gameOver bool
 }
@@ -172,6 +173,8 @@ func (es *TetrisField) Update() {
 	if es.gameOver {
 		return
 	}
+
+	es.frameCount++
 
 	es.dashParticles.Update()
 
