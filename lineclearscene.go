@@ -5,7 +5,6 @@ import (
 	"math"
 
 	"github.com/gdamore/tcell/v2"
-	"github.com/mattn/go-runewidth"
 )
 
 type LineClearScene struct {
@@ -69,48 +68,32 @@ func (lcs *LineClearScene) Draw(sw, sh int, rr Area, lag float64) {
 		int64(timeSeconds),
 		int64(timeMillis),
 	)
-	timeStringLength := runewidth.StringWidth(timeString)
 
-	SetString(
-		lowerRightHudAnchorX - 4,
+	SetStringArray(
+		lowerRightHudAnchorX,
 		lowerRightHudAnchorY - 1,
+		defStyle,
+		true,
 		"TIME",
-		defStyle)
-	SetString(
-		lowerRightHudAnchorX - timeStringLength,
-		lowerRightHudAnchorY,
-		timeString,
-		defStyle)
+		timeString)
 
 	pieceCountString := fmt.Sprintf(
 		"%d",
 		lcs.es.pieceCount,
 	)
-	pieceCountStringLength := runewidth.StringWidth(pieceCountString)
 
 	piecesPerSecondString := fmt.Sprintf(
 		"%.2f p/s",
 		float64(lcs.es.pieceCount)/(rawTime/1000),
 	)
 
-	piecesPerSecondStringLength := runewidth.StringWidth(piecesPerSecondString)
 
-	SetString(
-		lowerRightHudAnchorX - 6,
+	SetStringArray(
+		lowerRightHudAnchorX,
 		lowerRightHudAnchorY - 5,
+		defStyle,
+		true,
 		"PIECES",
-		defStyle)
-
-
-	SetString(
-		lowerRightHudAnchorX - pieceCountStringLength,
-		lowerRightHudAnchorY - 4,
 		pieceCountString,
-		defStyle)
-
-	SetString(
-		lowerRightHudAnchorX - piecesPerSecondStringLength,
-		lowerRightHudAnchorY - 3,
-		piecesPerSecondString,
-		defStyle)
+		piecesPerSecondString)
 }

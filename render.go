@@ -34,6 +34,21 @@ func SetCenteredString(x, y int, s string, style tcell.Style) {
 	}
 }
 
+func SetStringArray(
+	x, y int,
+	style tcell.Style, leftAlign bool,
+	strings ...string) {
+	
+	for i, s := range strings {
+		xx := x
+		if leftAlign {
+			xx -= runewidth.StringWidth(s)
+		}
+
+		SetString(xx, y+i, s, style)
+	}
+}
+
 func SetCenteredSpans(x, y int, spans ...Span) {
 	width := 0
 	for _, sp := range spans {
