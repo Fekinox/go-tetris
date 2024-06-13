@@ -86,6 +86,7 @@ type TetrisField struct {
 
 	score         int64
 	lines         int64
+	pieceCount		  int64
 	combo         int
 	level         int64
 	startingLevel int64
@@ -125,6 +126,8 @@ func (es *TetrisField) StartGame(seed int64, startingLevel int64) {
 
 	es.gravityTimer = es.fallRate
 	es.dashParticles = InitParticles(0.1)
+	es.frameCount = 0
+	es.pieceCount = 0
 
 	es.gameOver = false
 
@@ -720,6 +723,8 @@ func (es *TetrisField) LockPiece() {
 			}
 		}
 	}
+
+	es.pieceCount++
 
 	es.usedHoldPiece = false
 	es.ClearLines()
