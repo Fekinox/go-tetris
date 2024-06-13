@@ -371,7 +371,7 @@ func (es *EngineState) DrawNextPieces(rr Area) {
 func (es *EngineState) DrawHoldPiece(rr Area) {
 	if es.holdPiece != 8 {
 		var pieceStyle tcell.Style
-		if es.gameOver {
+		if es.gameOver || es.usedHoldPiece {
 			pieceStyle = GAME_OVER_PIECE_STYLE
 		} else {
 			pieceStyle =
