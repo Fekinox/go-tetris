@@ -87,7 +87,6 @@ func (lcs *LineClearScene) Draw(sw, sh int, rr Area, lag float64) {
 		float64(lcs.es.pieceCount)/(rawTime/1000),
 	)
 
-
 	SetStringArray(
 		lowerRightHudAnchorX,
 		lowerRightHudAnchorY - 5,
@@ -96,4 +95,22 @@ func (lcs *LineClearScene) Draw(sw, sh int, rr Area, lag float64) {
 		"PIECES",
 		pieceCountString,
 		piecesPerSecondString)
+
+	// Draw lines & lines per second
+	linesString := fmt.Sprintf(
+		"%d",
+		lcs.es.lines)
+
+	linesPerSecondString := fmt.Sprintf(
+		"%.2f l/s",
+		float64(lcs.es.lines)/(rawTime/1000))
+
+	SetStringArray(
+		lowerRightHudAnchorX,
+		lowerRightHudAnchorY - 9,
+		defStyle,
+		true,
+		"LINES",
+		linesString,
+		linesPerSecondString)
 }
