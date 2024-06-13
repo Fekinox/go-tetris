@@ -136,8 +136,15 @@ func (a *App) OpenMenuScene() {
 	a.NextScene = &menuScene
 }
 
-func (a *App) OpenGameScene() {
+func (a *App) OpenLineClearScene() {
 	gameScene := LineClearScene{}
+	gameScene.Init(a, 40, 1)
+
+	a.CurrentScene = &gameScene
+}
+
+func (a *App) OpenEndlessScene() {
+	gameScene := EndlessScene{}
 	gameScene.Init(a, 40, 1)
 
 	a.CurrentScene = &gameScene

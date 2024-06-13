@@ -3,7 +3,8 @@ package main
 import "github.com/gdamore/tcell/v2"
 
 var MENU_OPTIONS = []string{
-	"Play",
+	"40 Line Clear",
+	"Endless",
 	"Credits",
 	"Quit",
 }
@@ -42,10 +43,12 @@ func (ms *MenuScene) Update() {
 func (ms *MenuScene) ConfirmAction() {
 	switch ms.menuFocus {
 	case 0:
-		ms.app.OpenGameScene()
+		ms.app.OpenLineClearScene()
 	case 1:
-		break;
+		ms.app.OpenEndlessScene()
 	case 2:
+		break;
+	case 3:
 		ms.app.WillQuit = true
 	}
 }
