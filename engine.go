@@ -208,13 +208,13 @@ func (es *TetrisField) Draw(sw, sh int, rr Area, lag float64) {
 
 	nextPieceArea := Area{
 		X:     rr.X + BOARD_WIDTH + 4,
-		Y:     rr.Y + 4,
+		Y:     rr.Y + 2,
 		Width: 4,
 	}
 
 	holdPieceArea := Area{
-		X: rr.X - 5,
-		Y: rr.Y + 4,
+		X: rr.X - 6,
+		Y: rr.Y + 2,
 	}
 
 	scoreArea := Area{
@@ -351,6 +351,11 @@ func (es *TetrisField) DrawPiece(
 }
 
 func (es *TetrisField) DrawNextPieces(rr Area) {
+	SetString(
+		rr.X,
+		rr.Y-1,
+		"NEXT",
+		defStyle)
 	for i := 0; i < NUM_NEXT_PIECES; i++ {
 		piece := Pieces[es.nextPieces[i]][0]
 		gridOffsetX := piece.Width/2 + 1
@@ -364,8 +369,8 @@ func (es *TetrisField) DrawNextPieces(rr Area) {
 				SolidPieceStyle(es.nextPieces[i])
 		}
 
-		px := rr.X - gridOffsetX
-		py := rr.Y + i*4 - gridOffsetY
+		px := rr.X - gridOffsetX + 2
+		py := rr.Y + (i+1)*4 - gridOffsetY - 1
 		es.DrawPiece(
 			piece,
 			px, py,
@@ -375,6 +380,11 @@ func (es *TetrisField) DrawNextPieces(rr Area) {
 }
 
 func (es *TetrisField) DrawHoldPiece(rr Area) {
+	SetString(
+		rr.X,
+		rr.Y-1,
+		"HOLD",
+		defStyle)
 	if es.holdPiece != 8 {
 		var pieceStyle tcell.Style
 		if es.gameOver || es.usedHoldPiece {
@@ -390,7 +400,7 @@ func (es *TetrisField) DrawHoldPiece(rr Area) {
 
 		es.DrawPiece(
 			piece,
-			rr.X-gridOffsetX, rr.Y-gridOffsetY,
+			rr.X-gridOffsetX+2, rr.Y-gridOffsetY+3,
 			'o',
 			pieceStyle)
 	}
