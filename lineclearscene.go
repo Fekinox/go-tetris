@@ -113,4 +113,19 @@ func (lcs *LineClearScene) Draw(sw, sh int, rr Area, lag float64) {
 		"LINES",
 		linesString,
 		linesPerSecondString)
+
+	// Draw score and level
+	
+	centerBottomAnchorX := playingField.Left() + playingField.Width/2
+	centerBottomAnchorY := playingField.Bottom() - 1
+	SetCenteredString(
+		centerBottomAnchorX,
+		centerBottomAnchorY,
+		fmt.Sprintf("%d", lcs.es.score),
+		defStyle)
+	SetCenteredString(
+		centerBottomAnchorX,
+		centerBottomAnchorY+1,
+		fmt.Sprintf("%d", lcs.es.level),
+		defStyle)
 }

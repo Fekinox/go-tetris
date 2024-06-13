@@ -397,22 +397,6 @@ func (es *TetrisField) DrawHoldPiece(rr Area) {
 }
 
 func (es *TetrisField) DrawScore(rr Area) {
-	SetString(
-		rr.X,
-		rr.Y,
-		fmt.Sprintf("SCORE: %d", es.score),
-		defStyle)
-	SetString(
-		rr.X,
-		rr.Y+2,
-		fmt.Sprintf("LINES: %d", es.lines),
-		defStyle)
-	SetString(
-		rr.X,
-		rr.Y+4,
-		fmt.Sprintf("LEVEL: %d", es.level),
-		defStyle)
-
 	if es.combo > 1 {
 		SetString(
 			rr.X,
@@ -635,10 +619,12 @@ func (es *TetrisField) SoftDrop() {
 			es.cpIdx,
 			es.cpX, es.cpY,
 			es.cpX, es.hardDropHeight)
+		es.score += int64(es.hardDropHeight) - int64(es.cpY)
 		es.cpY = es.hardDropHeight
 		es.shiftMode = false
 		es.gravityTimer = es.fallRate
 		es.SetAirborne()
+
 		return
 	}
 
@@ -648,6 +634,7 @@ func (es *TetrisField) SoftDrop() {
 	}
 
 	es.cpY += 1
+	es.score += 1
 	es.gravityTimer = es.fallRate
 	es.SetAirborne()
 }
@@ -677,6 +664,7 @@ func (es *TetrisField) HardDrop() {
 		es.cpX, es.cpY,
 		es.cpX, es.hardDropHeight,
 	)
+	es.score += 2*(int64(es.hardDropHeight) - int64(es.cpY))
 	es.cpY = es.hardDropHeight
 	es.LockPiece()
 }
