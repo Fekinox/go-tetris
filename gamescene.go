@@ -9,7 +9,7 @@ type GameScene struct {
 
 func (gs *GameScene) Init(app *App) {
 	gs.app = app
-	gs.es = NewEngineState()
+	gs.es = NewTetrisField(1)
 }
 
 func (gs *GameScene) HandleEvent(ev tcell.Event) {

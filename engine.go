@@ -93,7 +93,7 @@ type TetrisField struct {
 	gameOver bool
 }
 
-func NewEngineState() *TetrisField {
+func NewTetrisField(startingLevel int64) *TetrisField {
 	es := TetrisField{
 		LastUpdateDuration: UPDATE_TICK_RATE_MS,
 
@@ -101,12 +101,12 @@ func NewEngineState() *TetrisField {
 		holdPiece:  8,
 	}
 
-	es.StartGame(time.Now().UnixNano())
+	es.StartGame(time.Now().UnixNano(), startingLevel)
 
 	return &es
 }
 
-func (es *TetrisField) StartGame(seed int64) {
+func (es *TetrisField) StartGame(seed int64, startingLevel int64) {
 	gen := NewBagRandomizer(seed, 1)
 	es.grid = MakeGrid(BOARD_WIDTH, BOARD_HEIGHT*2, 0)
 	es.holdPiece = 8
@@ -116,7 +116,7 @@ func (es *TetrisField) StartGame(seed int64) {
 	es.score = 0
 	es.lines = 0
 	es.combo = 0
-	es.startingLevel = 1
+	es.startingLevel = startingLevel
 	es.level = es.startingLevel
 	speedFactor := int(min(14, es.level-1))
 	es.fallRate =
