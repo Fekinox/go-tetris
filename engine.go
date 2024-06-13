@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math"
+	"math/rand"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -92,6 +93,9 @@ type TetrisField struct {
 	startingLevel int64
 	frameCount	  int64
 
+	garbageRng	  *rand.Rand
+	garbageQueue  []int
+
 	gameOver bool
 }
 
@@ -130,6 +134,9 @@ func (es *TetrisField) StartGame(seed int64, startingLevel int64) {
 	es.pieceCount = 0
 
 	es.gameOver = false
+
+	es.garbageRng = rand.New(rand.NewSource(seed))
+	es.garbageQueue = make([]int, 0, 20)
 
 	es.FillNextPieces()
 	es.GetRandomPiece()
@@ -727,6 +734,15 @@ func (es *TetrisField) LockPiece() {
 	es.usedHoldPiece = false
 	es.ClearLines()
 
+	if len(es.garbageQueue) > 0 {
+		for _, gb := range es.garbageQueue {
+			es.AddGarbage(gb)
+		}
+		es.garbageQueue = make([]int, 0, 20)
+
+		es.SetHardDropHeight()
+	}
+
 	// Check for a game over
 	pieceOverTop := false
 	for x := 0; x < es.grid.Width; x++ {
@@ -801,6 +817,37 @@ func (es *TetrisField) SetSnapPositions() {
 
 	es.hardDropLeftSnapHeight = ly
 	es.hardDropRightSnapHeight = ry
+}
+
+func (es *TetrisField) QueueGarbage(count int) {
+	es.garbageQueue = append(es.garbageQueue, count)
+}
+
+func (es *TetrisField) AddGarbage(count int) {
+	col := es.garbageRng.Intn(BOARD_WIDTH)	
+	for y := 0; y < es.grid.Height; y++ {
+		for x := 0; x < es.grid.Width; x++ {
+			if es.grid.Height - y - 1 < count {
+				var value int
+				if x == col { 
+					value = 0
+				} else {
+					value = 8
+				}
+				es.grid.Set(x, y, value)
+			} else {
+				es.grid.Set(x, y, es.grid.MustGet(x, y+count))
+			}
+		}
+	}
+
+	es.SetHardDropHeight()
+
+	if es.shiftMode {
+		es.SetSnapPositions()
+	}
+
+	es.SetAirborne()
 }
 
 func (es *TetrisField) ClearLines() {

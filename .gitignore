@@ -3,3 +3,4 @@ go-tictactoe
 build
 .build.sh
 log
+gotetris.zip

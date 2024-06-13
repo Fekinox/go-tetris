@@ -149,3 +149,10 @@ func (a *App) OpenEndlessScene() {
 
 	a.CurrentScene = &gameScene
 }
+
+func (a *App) OpenSurvivalScene() {
+	gameScene := SurvivalScene{}
+	gameScene.Init(a, 1)
+
+	a.CurrentScene = &gameScene
+}

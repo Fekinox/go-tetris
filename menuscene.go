@@ -5,6 +5,7 @@ import "github.com/gdamore/tcell/v2"
 var MENU_OPTIONS = []string{
 	"40 Line Clear",
 	"Endless",
+	"Survival",
 	"Credits",
 	"Quit",
 }
@@ -47,8 +48,10 @@ func (ms *MenuScene) ConfirmAction() {
 	case 1:
 		ms.app.OpenEndlessScene()
 	case 2:
-		break;
+		ms.app.OpenSurvivalScene()
 	case 3:
+		break;
+	case 4:
 		ms.app.WillQuit = true
 	}
 }

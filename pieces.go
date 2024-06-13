@@ -288,6 +288,8 @@ var PieceColors = []tcell.Color{
 	tcell.ColorFuchsia,
 	// Z
 	tcell.ColorRed,
+	// Garbage
+	tcell.ColorGrey,
 }
 
 func SolidPieceStyle(pieceIdx int) tcell.Style {
