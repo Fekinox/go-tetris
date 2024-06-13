@@ -49,7 +49,7 @@ func IsDigitRune(ev *tcell.EventKey) bool {
 	return ev.Rune() >= '0' && ev.Rune() <= '9'
 }
 
-type EngineState struct {
+type TetrisField struct {
 	LastRenderDuration float64
 	LastUpdateDuration float64
 
@@ -93,8 +93,8 @@ type EngineState struct {
 	gameOver bool
 }
 
-func NewEngineState() *EngineState {
-	es := EngineState{
+func NewEngineState() *TetrisField {
+	es := TetrisField{
 		LastUpdateDuration: UPDATE_TICK_RATE_MS,
 
 		nextPieces: make([]int, NUM_NEXT_PIECES),
@@ -106,7 +106,7 @@ func NewEngineState() *EngineState {
 	return &es
 }
 
-func (es *EngineState) StartGame(seed int64) {
+func (es *TetrisField) StartGame(seed int64) {
 	gen := NewBagRandomizer(seed, 1)
 	es.grid = MakeGrid(BOARD_WIDTH, BOARD_HEIGHT*2, 0)
 	es.holdPiece = 8
@@ -131,7 +131,7 @@ func (es *EngineState) StartGame(seed int64) {
 	es.GetRandomPiece()
 }
 
-func (es *EngineState) HandleInput(ev tcell.Event) {
+func (es *TetrisField) HandleInput(ev tcell.Event) {
 	switch ev := ev.(type) {
 	case *tcell.EventKey:
 		if IsRune(ev, 'r') || IsRune(ev, 'R') {
@@ -168,7 +168,7 @@ func (es *EngineState) HandleInput(ev tcell.Event) {
 	}
 }
 
-func (es *EngineState) Update() {
+func (es *TetrisField) Update() {
 	if es.gameOver {
 		return
 	}
@@ -192,7 +192,7 @@ func (es *EngineState) Update() {
 
 }
 
-func (es *EngineState) Draw(sw, sh int, rr Area, lag float64) {
+func (es *TetrisField) Draw(sw, sh int, rr Area, lag float64) {
 	gameArea := Area{
 		X:      rr.X + 8,
 		Y:      rr.Y + 2,
@@ -298,7 +298,7 @@ func (es *EngineState) Draw(sw, sh int, rr Area, lag float64) {
 	}
 }
 
-func (es *EngineState) DrawWell(rr Area) {
+func (es *TetrisField) DrawWell(rr Area) {
 	for y := 0; y < rr.Height+1; y++ {
 		Screen.SetContent(
 			rr.X-1,
@@ -325,7 +325,7 @@ func (es *EngineState) DrawWell(rr Area) {
 	}
 }
 
-func (es *EngineState) DrawPiece(
+func (es *TetrisField) DrawPiece(
 	piece Grid[bool],
 	px, py int,
 	rune rune,
@@ -344,7 +344,7 @@ func (es *EngineState) DrawPiece(
 	}
 }
 
-func (es *EngineState) DrawNextPieces(rr Area) {
+func (es *TetrisField) DrawNextPieces(rr Area) {
 	for i := 0; i < NUM_NEXT_PIECES; i++ {
 		piece := Pieces[es.nextPieces[i]][0]
 		gridOffsetX := piece.Width/2 + 1
@@ -368,7 +368,7 @@ func (es *EngineState) DrawNextPieces(rr Area) {
 	}
 }
 
-func (es *EngineState) DrawHoldPiece(rr Area) {
+func (es *TetrisField) DrawHoldPiece(rr Area) {
 	if es.holdPiece != 8 {
 		var pieceStyle tcell.Style
 		if es.gameOver || es.usedHoldPiece {
@@ -390,7 +390,7 @@ func (es *EngineState) DrawHoldPiece(rr Area) {
 	}
 }
 
-func (es *EngineState) DrawScore(rr Area) {
+func (es *TetrisField) DrawScore(rr Area) {
 	SetString(
 		rr.X,
 		rr.Y,
@@ -416,7 +416,7 @@ func (es *EngineState) DrawScore(rr Area) {
 	}
 }
 
-func (es *EngineState) DrawGrid(rr Area) {
+func (es *TetrisField) DrawGrid(rr Area) {
 	for yy := BOARD_HEIGHT; yy < es.grid.Height; yy++ {
 		for xx := 0; xx < es.grid.Width; xx++ {
 			if es.grid.MustGet(xx, yy) != 0 {
@@ -438,7 +438,7 @@ func (es *EngineState) DrawGrid(rr Area) {
 	}
 }
 
-func (es *EngineState) DrawGameOver(rr Area) {
+func (es *TetrisField) DrawGameOver(rr Area) {
 	subArea := rr.Inset(rr.Width, 4)
 	for xx := rr.Left(); xx < rr.Right(); xx++ {
 		Screen.SetContent(
@@ -473,13 +473,13 @@ func (es *EngineState) DrawGameOver(rr Area) {
 		defStyle)
 }
 
-func (es *EngineState) FillNextPieces() {
+func (es *TetrisField) FillNextPieces() {
 	for i := 0; i < NUM_NEXT_PIECES; i++ {
 		es.nextPieces[i] = es.pieceGenerator.NextPiece()
 	}
 }
 
-func (es *EngineState) SetPiece(idx int) {
+func (es *TetrisField) SetPiece(idx int) {
 	es.cpIdx = idx
 	es.cpGrid = Pieces[idx][0]
 	es.cpRot = 0
@@ -497,7 +497,7 @@ func (es *EngineState) SetPiece(idx int) {
 	es.shiftMode = false
 }
 
-func (es *EngineState) GetRandomPiece() {
+func (es *TetrisField) GetRandomPiece() {
 	idx := es.nextPieces[0]
 
 	es.SetPiece(idx)
@@ -508,7 +508,7 @@ func (es *EngineState) GetRandomPiece() {
 	es.nextPieces[NUM_NEXT_PIECES-2] = es.pieceGenerator.NextPiece()
 }
 
-func (es *EngineState) ToggleShiftMode() {
+func (es *TetrisField) ToggleShiftMode() {
 	es.shiftMode = !es.shiftMode
 
 	if es.shiftMode {
@@ -516,7 +516,7 @@ func (es *EngineState) ToggleShiftMode() {
 	}
 }
 
-func (es *EngineState) Rotate(offset int) {
+func (es *TetrisField) Rotate(offset int) {
 	newRotation := (es.cpRot + offset) % 4
 	newRotation = (newRotation + 4) % 4
 
@@ -575,11 +575,11 @@ func (es *EngineState) Rotate(offset int) {
 
 }
 
-func (es *EngineState) HandleReset() {
+func (es *TetrisField) HandleReset() {
 	es.StartGame(time.Now().UnixNano())
 }
 
-func (es *EngineState) MovePiece(dx int) {
+func (es *TetrisField) MovePiece(dx int) {
 	if es.shiftMode {
 		if dx < 0 {
 			es.DashParticles(
@@ -622,7 +622,7 @@ func (es *EngineState) MovePiece(dx int) {
 	}
 }
 
-func (es *EngineState) SoftDrop() {
+func (es *TetrisField) SoftDrop() {
 	if es.shiftMode {
 		es.DashParticles(
 			es.cpGrid,
@@ -646,7 +646,7 @@ func (es *EngineState) SoftDrop() {
 	es.SetAirborne()
 }
 
-func (es *EngineState) GravityDrop() {
+func (es *TetrisField) GravityDrop() {
 	if es.CheckCollision(
 		es.cpGrid,
 		es.cpX,
@@ -664,7 +664,7 @@ func (es *EngineState) GravityDrop() {
 	es.SetAirborne()
 }
 
-func (es *EngineState) HardDrop() {
+func (es *TetrisField) HardDrop() {
 	es.DashParticles(
 		es.cpGrid,
 		es.cpIdx,
@@ -675,7 +675,7 @@ func (es *EngineState) HardDrop() {
 	es.LockPiece()
 }
 
-func (es *EngineState) SwapHoldPiece() {
+func (es *TetrisField) SwapHoldPiece() {
 	if es.usedHoldPiece {
 		return
 	}
@@ -690,7 +690,7 @@ func (es *EngineState) SwapHoldPiece() {
 	es.usedHoldPiece = true
 }
 
-func (es *EngineState) CheckCollision(piece Grid[bool], px, py int) bool {
+func (es *TetrisField) CheckCollision(piece Grid[bool], px, py int) bool {
 	for yy := 0; yy < piece.Height; yy++ {
 		for xx := 0; xx < piece.Width; xx++ {
 			if piece.MustGet(xx, yy) {
@@ -707,7 +707,7 @@ func (es *EngineState) CheckCollision(piece Grid[bool], px, py int) bool {
 	return false
 }
 
-func (es *EngineState) LockPiece() {
+func (es *TetrisField) LockPiece() {
 	for yy := 0; yy < es.cpGrid.Height; yy++ {
 		for xx := 0; xx < es.cpGrid.Width; xx++ {
 			if es.cpGrid.MustGet(xx, yy) {
@@ -744,7 +744,7 @@ func (es *EngineState) LockPiece() {
 	es.GetRandomPiece()
 }
 
-func (es *EngineState) SetAirborne() {
+func (es *TetrisField) SetAirborne() {
 	oldAirborne := es.airborne
 	newAirborne := !es.CheckCollision(es.cpGrid, es.cpX, es.cpY+1)
 	es.airborne = newAirborne
@@ -760,7 +760,7 @@ func (es *EngineState) SetAirborne() {
 	}
 }
 
-func (es *EngineState) SetHardDropHeight() {
+func (es *TetrisField) SetHardDropHeight() {
 	yy := es.cpY
 	for !es.CheckCollision(es.cpGrid, es.cpX, yy+1) {
 		yy += 1
@@ -769,7 +769,7 @@ func (es *EngineState) SetHardDropHeight() {
 	es.hardDropHeight = yy
 }
 
-func (es *EngineState) SetSnapPositions() {
+func (es *TetrisField) SetSnapPositions() {
 	l := es.cpX
 	r := es.cpX
 
@@ -797,7 +797,7 @@ func (es *EngineState) SetSnapPositions() {
 	es.hardDropRightSnapHeight = ry
 }
 
-func (es *EngineState) ClearLines() {
+func (es *TetrisField) ClearLines() {
 	lines := make([]int, 0)
 	for y := 0; y < es.grid.Height; y++ {
 		fullLine := true
@@ -868,7 +868,7 @@ func (es *EngineState) ClearLines() {
 
 var dashParticleData = MakeGrid(BOARD_WIDTH, BOARD_HEIGHT, 0.0)
 
-func (es *EngineState) DashParticles(
+func (es *TetrisField) DashParticles(
 	piece Grid[bool],
 	pieceIdx int,
 	initX, initY int,
