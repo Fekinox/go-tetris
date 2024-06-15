@@ -4,7 +4,7 @@ import "github.com/gdamore/tcell/v2"
 
 type GameScene struct {
 	app *App
-	es *TetrisField
+	es  *TetrisField
 }
 
 func (gs *GameScene) Init(app *App) {

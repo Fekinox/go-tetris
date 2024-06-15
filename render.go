@@ -38,7 +38,7 @@ func SetStringArray(
 	x, y int,
 	style tcell.Style, leftAlign bool,
 	strings ...string) {
-	
+
 	for i, s := range strings {
 		xx := x
 		if leftAlign {

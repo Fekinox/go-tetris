@@ -1,16 +1,13 @@
 package main
 
 import (
-	"fmt"
-	"math"
-
 	"github.com/gdamore/tcell/v2"
 )
 
 type LineClearScene struct {
-	app *App
-	es *TetrisField
-	lineLimit int64
+	app           *App
+	es            *TetrisField
+	lineLimit     int64
 	startingLevel int64
 }
 
@@ -48,84 +45,10 @@ func (lcs *LineClearScene) Update() {
 }
 
 func (lcs *LineClearScene) Draw(sw, sh int, rr Area, lag float64) {
-	// Center the playing field
 	playingField := rr.Inset(BOARD_WIDTH, BOARD_HEIGHT+4)
+	anchorX := playingField.X - 2
+	anchorY := playingField.Bottom() - 2
+
 	lcs.es.Draw(sw, sh, playingField, lag)
-
-	// Draw the current time
-	lowerRightHudAnchorX := playingField.X - 2
-	lowerRightHudAnchorY := playingField.Bottom() - 2
-
-	rawTime := float64(lcs.es.frameCount) * UPDATE_TICK_RATE_MS
-	timeMinutes := math.Trunc(rawTime/(60*1000))
-	timeSeconds := math.Trunc((rawTime - timeMinutes*60*1000)/1000)
-	timeMillis := math.Trunc((rawTime - timeMinutes*60*1000 -
-	timeSeconds*1000))
-
-	timeString := fmt.Sprintf(
-		"%0d:%02d.%03d",
-		int64(timeMinutes),
-		int64(timeSeconds),
-		int64(timeMillis),
-	)
-
-	SetStringArray(
-		lowerRightHudAnchorX,
-		lowerRightHudAnchorY - 1,
-		defStyle,
-		true,
-		"TIME",
-		timeString)
-
-	pieceCountString := fmt.Sprintf(
-		"%d",
-		lcs.es.pieceCount,
-	)
-
-	piecesPerSecondString := fmt.Sprintf(
-		"%.2f p/s",
-		float64(lcs.es.pieceCount)/(rawTime/1000),
-	)
-
-	SetStringArray(
-		lowerRightHudAnchorX,
-		lowerRightHudAnchorY - 5,
-		defStyle,
-		true,
-		"PIECES",
-		pieceCountString,
-		piecesPerSecondString)
-
-	// Draw lines & lines per second
-	linesString := fmt.Sprintf(
-		"%d",
-		lcs.es.lines)
-
-	linesPerSecondString := fmt.Sprintf(
-		"%.2f l/s",
-		float64(lcs.es.lines)/(rawTime/1000))
-
-	SetStringArray(
-		lowerRightHudAnchorX,
-		lowerRightHudAnchorY - 9,
-		defStyle,
-		true,
-		"LINES",
-		linesString,
-		linesPerSecondString)
-
-	// Draw score and level
-	
-	centerBottomAnchorX := playingField.Left() + playingField.Width/2
-	centerBottomAnchorY := playingField.Bottom() - 1
-	SetCenteredString(
-		centerBottomAnchorX,
-		centerBottomAnchorY,
-		fmt.Sprintf("%d", lcs.es.score),
-		defStyle)
-	SetCenteredString(
-		centerBottomAnchorX,
-		centerBottomAnchorY+1,
-		fmt.Sprintf("%d", lcs.es.level),
-		defStyle)
+	lcs.es.DrawStats(rr, anchorX, anchorY)
 }

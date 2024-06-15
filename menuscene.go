@@ -50,7 +50,7 @@ func (ms *MenuScene) ConfirmAction() {
 	case 2:
 		ms.app.OpenSurvivalScene()
 	case 3:
-		break;
+		break
 	case 4:
 		ms.app.WillQuit = true
 	}
@@ -69,14 +69,14 @@ func (ms *MenuScene) Draw(sw, sh int, rr Area, lag float64) {
 			style = style.Reverse(true)
 			Screen.SetContent(
 				rr.X,
-				rr.Y + 2 + 2 * i,
+				rr.Y+2+2*i,
 				'*',
 				nil, defStyle)
 		}
 
 		SetString(
-			rr.X + 2,
-			rr.Y + 2 + 2 * i,
+			rr.X+2,
+			rr.Y+2+2*i,
 			opt,
 			style)
 	}

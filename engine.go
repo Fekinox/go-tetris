@@ -87,14 +87,14 @@ type TetrisField struct {
 
 	score         int64
 	lines         int64
-	pieceCount		  int64
+	pieceCount    int64
 	combo         int
 	level         int64
 	startingLevel int64
-	frameCount	  int64
+	frameCount    int64
 
-	garbageRng	  *rand.Rand
-	garbageQueue  []int
+	garbageRng   *rand.Rand
+	garbageQueue []int
 
 	gameOver bool
 }
@@ -150,8 +150,8 @@ func (es *TetrisField) HandleInput(ev tcell.Event) {
 		}
 		if !es.gameOver {
 			if ev.Key() == tcell.KeyUp ||
-			IsRune(ev, 'w') || IsRune(ev, 'W') ||
-			IsRune(ev, 'x') || IsRune(ev, 'X') {
+				IsRune(ev, 'w') || IsRune(ev, 'W') ||
+				IsRune(ev, 'x') || IsRune(ev, 'X') {
 				es.Rotate(1)
 			}
 			if IsRune(ev, 'z') || IsRune(ev, 'Z') {
@@ -468,14 +468,14 @@ func (es *TetrisField) DrawGameOver(rr Area) {
 		' ', defStyle)
 
 	SetCenteredString(
-		subArea.X + subArea.Width/2,
-		subArea.Y + 1,
+		subArea.X+subArea.Width/2,
+		subArea.Y+1,
 		"GAME",
 		defStyle)
 
 	SetCenteredString(
-		subArea.X + subArea.Width/2,
-		subArea.Y + 2,
+		subArea.X+subArea.Width/2,
+		subArea.Y+2,
 		"OVER",
 		defStyle)
 }
@@ -681,7 +681,7 @@ func (es *TetrisField) HardDrop() {
 		es.cpX, es.cpY,
 		es.cpX, es.hardDropHeight,
 	)
-	es.score += 2*(int64(es.hardDropHeight) - int64(es.cpY))
+	es.score += 2 * (int64(es.hardDropHeight) - int64(es.cpY))
 	es.cpY = es.hardDropHeight
 	es.LockPiece()
 }
@@ -747,9 +747,9 @@ func (es *TetrisField) LockPiece() {
 	pieceOverTop := false
 	for x := 0; x < es.grid.Width; x++ {
 		height := 0
-		for y := es.grid.Height-1; y >= 0; y-- {
+		for y := es.grid.Height - 1; y >= 0; y-- {
 			if es.grid.MustGet(x, y) != 0 {
-				height = es.grid.Height-y
+				height = es.grid.Height - y
 			}
 		}
 		if height > BOARD_HEIGHT {
@@ -824,12 +824,12 @@ func (es *TetrisField) QueueGarbage(count int) {
 }
 
 func (es *TetrisField) AddGarbage(count int) {
-	col := es.garbageRng.Intn(BOARD_WIDTH)	
+	col := es.garbageRng.Intn(BOARD_WIDTH)
 	for y := 0; y < es.grid.Height; y++ {
 		for x := 0; x < es.grid.Width; x++ {
-			if es.grid.Height - y - 1 < count {
+			if es.grid.Height-y-1 < count {
 				var value int
-				if x == col { 
+				if x == col {
 					value = 0
 				} else {
 					value = 8
@@ -917,6 +917,81 @@ func (es *TetrisField) ClearLines() {
 	}
 
 	es.score += int64(COMBO_BASE_SCORE*comboCount) * es.level
+}
+
+func (es *TetrisField) DrawStats(rr Area, anchorX, anchorY int) {
+	rawTime := float64(es.frameCount) * UPDATE_TICK_RATE_MS
+	timeMinutes := math.Trunc(rawTime / (60 * 1000))
+	timeSeconds := math.Trunc((rawTime - timeMinutes*60*1000) / 1000)
+	timeMillis := math.Trunc((rawTime - timeMinutes*60*1000 -
+		timeSeconds*1000))
+
+	timeString := fmt.Sprintf(
+		"%0d:%02d.%03d",
+		int64(timeMinutes),
+		int64(timeSeconds),
+		int64(timeMillis),
+	)
+
+	SetStringArray(
+		anchorX,
+		anchorY-1,
+		defStyle,
+		true,
+		"TIME",
+		timeString)
+
+	pieceCountString := fmt.Sprintf(
+		"%d",
+		es.pieceCount,
+	)
+
+	piecesPerSecondString := fmt.Sprintf(
+		"%.2f p/s",
+		float64(es.pieceCount)/(rawTime/(1000)),
+	)
+
+	SetStringArray(
+		anchorX,
+		anchorY-5,
+		defStyle,
+		true,
+		"PIECES",
+		pieceCountString,
+		piecesPerSecondString)
+
+	// Draw lines & lines per second
+	linesString := fmt.Sprintf(
+		"%d",
+		es.lines)
+
+	linesPerMinuteString := fmt.Sprintf(
+		"%.2f l/m",
+		float64(es.lines)/(rawTime/(1000*60)))
+
+	SetStringArray(
+		anchorX,
+		anchorY-9,
+		defStyle,
+		true,
+		"LINES",
+		linesString,
+		linesPerMinuteString)
+
+	// Draw score and level
+
+	centerBottomAnchorX := rr.Left() + rr.Width/2
+	centerBottomAnchorY := rr.Bottom() - 1
+	SetCenteredString(
+		centerBottomAnchorX,
+		centerBottomAnchorY,
+		fmt.Sprintf("%d", es.score),
+		defStyle)
+	SetCenteredString(
+		centerBottomAnchorX,
+		centerBottomAnchorY+1,
+		fmt.Sprintf("%d", es.level),
+		defStyle)
 }
 
 var dashParticleData = MakeGrid(BOARD_WIDTH, BOARD_HEIGHT, 0.0)
