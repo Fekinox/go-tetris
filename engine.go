@@ -1100,3 +1100,7 @@ func (es *TetrisField) DashParticles(
 		}
 	}
 }
+
+func (es *TetrisField) AddLineClearHandler(handler LineClearHandler) {
+	es.lineClearHandlers = append(es.lineClearHandlers, handler)
+}

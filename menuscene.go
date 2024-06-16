@@ -6,6 +6,7 @@ var MENU_OPTIONS = []string{
 	"40 Line Clear",
 	"Endless",
 	"Survival",
+	"Cheese",
 	"Credits",
 	"Quit",
 }
@@ -50,8 +51,10 @@ func (ms *MenuScene) ConfirmAction() {
 	case 2:
 		ms.app.OpenSurvivalScene()
 	case 3:
-		break
+		ms.app.OpenCheeseScene()
 	case 4:
+		break
+	case 5:
 		ms.app.WillQuit = true
 	}
 }

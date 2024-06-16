@@ -156,3 +156,10 @@ func (a *App) OpenSurvivalScene() {
 
 	a.CurrentScene = &gameScene
 }
+
+func (a *App) OpenCheeseScene() {
+	gameScene := CheeseScene{}
+	gameScene.Init(a, 1, 18)
+
+	a.CurrentScene = &gameScene
+}
