@@ -27,6 +27,7 @@ func (svs *SurvivalScene) HandleEvent(ev tcell.Event) {
 			svs.app.OpenMenuScene()
 		} else if IsRune(ev, 'r') || IsRune(ev, 'R') {
 			svs.es.HandleReset()
+			svs.survivalCounter = SURVIVAL_GARBAGE_RATE
 		} else {
 			svs.es.HandleInput(ev)
 		}
