@@ -50,6 +50,8 @@ func IsDigitRune(ev *tcell.EventKey) bool {
 	return ev.Rune() >= '0' && ev.Rune() <= '9'
 }
 
+type LineClearHandler func(garbage, nonGarbage int)
+
 type TetrisField struct {
 	LastRenderDuration float64
 	LastUpdateDuration float64
@@ -96,6 +98,7 @@ type TetrisField struct {
 	garbageRng   *rand.Rand
 	garbageQueue []int
 
+	lineClearHandlers []LineClearHandler
 	gameOver bool
 }
 
@@ -105,6 +108,7 @@ func NewTetrisField(startingLevel int64) *TetrisField {
 
 		nextPieces: make([]int, NUM_NEXT_PIECES),
 		holdPiece:  8,
+		lineClearHandlers: make([]LineClearHandler, 0),
 	}
 
 	es.StartGame(time.Now().UnixNano(), startingLevel)
@@ -852,18 +856,27 @@ func (es *TetrisField) AddGarbage(count int) {
 
 func (es *TetrisField) ClearLines() {
 	lines := make([]int, 0)
+	var garbage, nonGarbage int
 	for y := 0; y < es.grid.Height; y++ {
 		fullLine := true
+		isGarbage := false
 	notFullLine:
 		for x := 0; x < es.grid.Width; x++ {
 			if es.grid.MustGet(x, y) == 0 {
 				fullLine = false
 				break notFullLine
+			} else if !isGarbage && es.grid.MustGet(x, y) == 8 {
+				isGarbage = true
 			}
 		}
 
 		if fullLine {
 			lines = append(lines, y)
+			if isGarbage {
+				garbage++
+			} else {
+				nonGarbage++
+			}
 		}
 	}
 
@@ -917,6 +930,10 @@ func (es *TetrisField) ClearLines() {
 	}
 
 	es.score += int64(COMBO_BASE_SCORE*comboCount) * es.level
+
+	for _, handle := range es.lineClearHandlers {
+		handle(garbage, nonGarbage)
+	}
 }
 
 func (es *TetrisField) DrawStats(rr Area, anchorX, anchorY int) {
