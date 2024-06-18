@@ -99,7 +99,10 @@ type TetrisField struct {
 	garbageQueue []int
 
 	lineClearHandlers []LineClearHandler
+
 	gameOver          bool
+
+	maxStackHeight int
 }
 
 func NewTetrisField(startingLevel int64) *TetrisField {
@@ -762,9 +765,9 @@ func (es *TetrisField) LockPiece() {
 	es.pieceCount++
 
 	es.usedHoldPiece = false
-	es.ClearLines()
+	clearedLines := es.ClearLines()
 
-	if len(es.garbageQueue) > 0 {
+	if len(es.garbageQueue) > 0 && !clearedLines {
 		for _, gb := range es.garbageQueue {
 			es.AddGarbage(gb)
 		}
@@ -880,7 +883,8 @@ func (es *TetrisField) AddGarbage(count int) {
 	es.SetAirborne()
 }
 
-func (es *TetrisField) ClearLines() {
+func (es *TetrisField) ClearLines() bool {
+	clearedLines := false
 	lines := make([]int, 0)
 	var garbage, nonGarbage int
 	for y := 0; y < es.grid.Height; y++ {
@@ -921,6 +925,7 @@ func (es *TetrisField) ClearLines() {
 
 	// Lines and levels
 	if len(lines) > 0 {
+		clearedLines = true
 		es.lines += int64(len(lines))
 		es.level = (es.lines / 10) + es.startingLevel
 		speedFactor := int(min(14, es.level-1))
@@ -960,6 +965,8 @@ func (es *TetrisField) ClearLines() {
 	for _, handle := range es.lineClearHandlers {
 		handle(garbage, nonGarbage)
 	}
+
+	return clearedLines
 }
 
 func (es *TetrisField) DrawStats(rr Area, anchorX, anchorY int) {

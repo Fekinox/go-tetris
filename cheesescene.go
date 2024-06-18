@@ -43,7 +43,7 @@ func (chs *CheeseScene) HandleAction(act Action) {
 		chs.currentGarbage = chs.startingGarbage
 
 		for i := 0; i < chs.currentGarbage && i < MAX_CHEESE_GARBAGE_LINES; i++ {
-			chs.es.AddGarbage(1)
+			chs.es.QueueGarbage(1)
 		}
 	default:
 		chs.es.HandleAction(act)
