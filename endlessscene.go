@@ -16,17 +16,14 @@ func (els *EndlessScene) Init(app *App, lineLimit int64, level int64) {
 }
 
 func (els *EndlessScene) HandleEvent(ev tcell.Event) {
-	switch ev := ev.(type) {
-	case *tcell.EventKey:
-		if IsRune(ev, 'q') || IsRune(ev, 'Q') {
-			els.app.OpenMenuScene()
-		}
-		els.es.HandleInput(ev)
-	}
 }
 
 func (els *EndlessScene) HandleAction(act Action) {
-	//
+	if act == Quit {
+		els.app.OpenMenuScene()
+		return
+	}
+	els.es.HandleAction(act)
 }
 
 func (els *EndlessScene) Update() {

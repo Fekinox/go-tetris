@@ -32,20 +32,21 @@ func (chs *CheeseScene) Init(app *App, level int64, startingGarbage int) {
 }
 
 func (chs *CheeseScene) HandleEvent(ev tcell.Event) {
-	switch ev := ev.(type) {
-	case *tcell.EventKey:
-		if IsRune(ev, 'q') || IsRune(ev, 'Q') {
-			chs.app.OpenMenuScene()
-		} else if IsRune(ev, 'r') || IsRune(ev, 'R') {
-			chs.es.HandleReset()
-			chs.currentGarbage = chs.startingGarbage
+}
 
-			for i := 0; i < chs.currentGarbage && i < MAX_CHEESE_GARBAGE_LINES; i++ {
-				chs.es.AddGarbage(1)
-			}
-		} else {
-			chs.es.HandleInput(ev)
+func (chs *CheeseScene) HandleAction(act Action) {
+	switch act {
+	case Quit:
+		chs.app.OpenMenuScene()
+	case Reset:
+		chs.es.HandleReset()
+		chs.currentGarbage = chs.startingGarbage
+
+		for i := 0; i < chs.currentGarbage && i < MAX_CHEESE_GARBAGE_LINES; i++ {
+			chs.es.AddGarbage(1)
 		}
+	default:
+		chs.es.HandleAction(act)
 	}
 }
 
@@ -59,10 +60,6 @@ func (chs *CheeseScene) OnLineClear(garbage int) {
 			chs.es.QueueGarbage(1)
 		}
 	}
-}
-
-func (chs *CheeseScene) HandleAction(act Action) {
-	//
 }
 
 func (chs *CheeseScene) Update() {

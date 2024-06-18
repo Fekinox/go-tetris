@@ -18,14 +18,6 @@ func (lcs *LineClearScene) Init(app *App, lineLimit int64, level int64) {
 }
 
 func (lcs *LineClearScene) HandleEvent(ev tcell.Event) {
-	switch ev := ev.(type) {
-	case *tcell.EventKey:
-		if IsRune(ev, 'q') || IsRune(ev, 'Q') {
-			lcs.app.OpenMenuScene()
-		}
-		lcs.es.HandleInput(ev)
-		lcs.AfterEvent()
-	}
 }
 
 func (lcs *LineClearScene) AfterEvent() {
@@ -35,7 +27,12 @@ func (lcs *LineClearScene) AfterEvent() {
 }
 
 func (lcs *LineClearScene) HandleAction(act Action) {
-	//
+	if act == Quit {
+		lcs.app.OpenMenuScene()
+		return
+	}
+	lcs.es.HandleAction(act)
+	lcs.AfterEvent()
 }
 
 func (lcs *LineClearScene) Update() {

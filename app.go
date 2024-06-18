@@ -16,6 +16,9 @@ type App struct {
 
 	lastRenderDuration float64
 	DefaultStyle       tcell.Style
+
+	keyActionMap  map[tcell.Key]Action
+	runeActionMap map[rune]Action
 }
 
 func NewApp() *App {
@@ -34,8 +37,34 @@ func NewApp() *App {
 	Screen.Clear()
 
 	app := &App{
-		DefaultStyle: tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorReset),
+		DefaultStyle:  tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorReset),
+		keyActionMap:  make(map[tcell.Key]Action),
+		runeActionMap: make(map[rune]Action),
 	}
+
+	app.keyActionMap[tcell.KeyLeft] = MoveLeft
+	app.keyActionMap[tcell.KeyRight] = MoveRight
+	app.keyActionMap[tcell.KeyUp] = MoveUp
+	app.keyActionMap[tcell.KeyDown] = MoveDown
+	app.keyActionMap[tcell.KeyEnter] = MenuConfirm
+
+	app.runeActionMap[' '] = HardDrop
+	app.runeActionMap['f'] = ToggleSuper
+	app.runeActionMap['F'] = ToggleSuper
+
+	app.runeActionMap['z'] = RotateCCW
+	app.runeActionMap['Z'] = RotateCCW
+	app.runeActionMap['x'] = RotateCW
+	app.runeActionMap['X'] = RotateCW
+	app.runeActionMap['c'] = SwapHoldPiece
+	app.runeActionMap['C'] = SwapHoldPiece
+
+	app.runeActionMap['q'] = Quit
+	app.runeActionMap['Q'] = Quit
+	app.runeActionMap['r'] = Reset
+	app.runeActionMap['R'] = Reset
+	app.runeActionMap['p'] = Pause
+	app.runeActionMap['P'] = Pause
 
 	app.OpenMenuScene()
 
@@ -81,7 +110,20 @@ func (a *App) Loop() {
 				} else if ev.Key() == tcell.KeyCtrlL {
 					Screen.Sync()
 				} else {
-					a.CurrentScene.HandleEvent(ev)
+					var action Action
+					var ok bool
+					if ev.Key() == tcell.KeyRune {
+						action, ok = a.runeActionMap[ev.Rune()]
+						if !ok {
+							continue
+						}
+					} else {
+						action, ok = a.keyActionMap[ev.Key()]
+						if !ok {
+							continue
+						}
+					}
+					a.CurrentScene.HandleAction(action)
 				}
 			default:
 				a.CurrentScene.HandleEvent(ev)

@@ -99,15 +99,15 @@ type TetrisField struct {
 	garbageQueue []int
 
 	lineClearHandlers []LineClearHandler
-	gameOver bool
+	gameOver          bool
 }
 
 func NewTetrisField(startingLevel int64) *TetrisField {
 	es := TetrisField{
 		LastUpdateDuration: UPDATE_TICK_RATE_MS,
 
-		nextPieces: make([]int, NUM_NEXT_PIECES),
-		holdPiece:  8,
+		nextPieces:        make([]int, NUM_NEXT_PIECES),
+		holdPiece:         8,
 		lineClearHandlers: make([]LineClearHandler, 0),
 	}
 
@@ -179,6 +179,32 @@ func (es *TetrisField) HandleInput(ev tcell.Event) {
 			if IsRune(ev, ';') || IsRune(ev, 'c') || IsRune(ev, 'C') {
 				es.SwapHoldPiece()
 			}
+		}
+	}
+}
+
+func (es *TetrisField) HandleAction(act Action) {
+	if act == Reset {
+		es.HandleReset()
+	}
+	if !es.gameOver {
+		switch act {
+		case MoveUp | RotateCW:
+			es.Rotate(1)
+		case RotateCCW:
+			es.Rotate(-1)
+		case MoveDown:
+			es.SoftDrop()
+		case HardDrop:
+			es.HardDrop()
+		case MoveLeft:
+			es.MovePiece(-1)
+		case MoveRight:
+			es.MovePiece(1)
+		case ToggleSuper:
+			es.ToggleShiftMode()
+		case SwapHoldPiece:
+			es.SwapHoldPiece()
 		}
 	}
 }

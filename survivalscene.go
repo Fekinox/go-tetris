@@ -21,21 +21,18 @@ func (svs *SurvivalScene) Init(app *App, level int64) {
 }
 
 func (svs *SurvivalScene) HandleEvent(ev tcell.Event) {
-	switch ev := ev.(type) {
-	case *tcell.EventKey:
-		if IsRune(ev, 'q') || IsRune(ev, 'Q') {
-			svs.app.OpenMenuScene()
-		} else if IsRune(ev, 'r') || IsRune(ev, 'R') {
-			svs.es.HandleReset()
-			svs.survivalCounter = SURVIVAL_GARBAGE_RATE
-		} else {
-			svs.es.HandleInput(ev)
-		}
-	}
 }
 
 func (svs *SurvivalScene) HandleAction(act Action) {
-	//
+	switch act {
+	case Quit:
+		svs.app.OpenMenuScene()
+	case Reset:
+		svs.es.HandleReset()
+		svs.survivalCounter = SURVIVAL_GARBAGE_RATE
+	default:
+		svs.es.HandleAction(act)
+	}
 }
 
 func (svs *SurvivalScene) Update() {

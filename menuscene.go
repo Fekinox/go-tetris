@@ -22,21 +22,17 @@ func (ms *MenuScene) Init(app *App) {
 }
 
 func (ms *MenuScene) HandleEvent(ev tcell.Event) {
-	switch ev := ev.(type) {
-	case *tcell.EventKey:
-		if ev.Key() == tcell.KeyUp || ev.Key() == tcell.KeyLeft {
-			ms.menuFocus = max(0, ms.menuFocus-1)
-		}
-		if ev.Key() == tcell.KeyDown || ev.Key() == tcell.KeyRight {
-			ms.menuFocus = min(len(MENU_OPTIONS), ms.menuFocus+1)
-		}
-		if ev.Key() == tcell.KeyEnter || IsRune(ev, ' ') {
-			ms.ConfirmAction()
-		}
-	}
 }
 
 func (ms *MenuScene) HandleAction(act Action) {
+	switch act {
+		case MoveUp:
+			ms.menuFocus = max(0, ms.menuFocus-1)
+		case MoveDown:
+			ms.menuFocus = min(len(MENU_OPTIONS), ms.menuFocus+1)
+		case MenuConfirm:
+			ms.ConfirmAction()
+	}
 }
 
 func (ms *MenuScene) Update() {
