@@ -103,6 +103,8 @@ type TetrisField struct {
 	gameOver          bool
 
 	maxStackHeight int
+
+	replayActions []ReplayAction
 }
 
 func NewTetrisField(startingLevel int64) *TetrisField {
@@ -112,6 +114,7 @@ func NewTetrisField(startingLevel int64) *TetrisField {
 		nextPieces:        make([]int, NUM_NEXT_PIECES),
 		holdPiece:         8,
 		lineClearHandlers: make([]LineClearHandler, 0),
+		replayActions: make([]ReplayAction, 0),
 	}
 
 	es.StartGame(time.Now().UnixNano(), startingLevel)
@@ -211,6 +214,11 @@ func (es *TetrisField) HandleAction(act Action) {
 		case SwapHoldPiece:
 			es.SwapHoldPiece()
 		}
+
+		es.replayActions = append(es.replayActions, ReplayAction{
+			Action: act,
+			Frame: es.frameCount,
+		})
 	}
 }
 
@@ -1193,3 +1201,5 @@ func (es *TetrisField) DashParticles(
 func (es *TetrisField) AddLineClearHandler(handler LineClearHandler) {
 	es.lineClearHandlers = append(es.lineClearHandlers, handler)
 }
+
+func (es *TetrisField) GetReplayData() Replay

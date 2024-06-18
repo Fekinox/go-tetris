@@ -17,3 +17,8 @@ const (
 	Pause
 	MenuConfirm
 )
+
+type ReplayAction struct {
+	Action Action
+	Frame int64
+}
