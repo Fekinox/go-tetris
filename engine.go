@@ -145,6 +145,8 @@ func (es *TetrisField) StartGame(seed int64, startingLevel int64) {
 	es.garbageRng = rand.New(rand.NewSource(seed))
 	es.garbageQueue = make([]int, 0, 20)
 
+	es.maxStackHeight = 0
+
 	es.FillNextPieces()
 	es.GetRandomPiece()
 }
@@ -318,6 +320,21 @@ func (es *TetrisField) Draw(sw, sh int, rr Area, lag float64) {
 		)
 	}
 
+	// Next piece indicator
+	if BOARD_HEIGHT - es.maxStackHeight < 4 {
+		nextPiece := Pieces[es.nextPieces[0]][0]
+		gridOffsetX := nextPiece.Width/2 + 1
+		gridOffsetY := nextPiece.Height/2 + 1
+
+		es.DrawPiece(
+			nextPiece,
+			gameArea.X + BOARD_WIDTH/2 - gridOffsetX,
+			gameArea.Y - gridOffsetY,
+			'X',
+			LightPieceStyle(6),
+		)
+	}
+
 	var pieceStyle tcell.Style
 	if es.gameOver {
 		pieceStyle = GAME_OVER_PIECE_STYLE
@@ -345,29 +362,34 @@ func (es *TetrisField) Draw(sw, sh int, rr Area, lag float64) {
 }
 
 func (es *TetrisField) DrawWell(rr Area) {
+	style := defStyle
+	if BOARD_HEIGHT - es.maxStackHeight < 4 {
+		style = style.Foreground(tcell.ColorRed)
+	}
+
 	for y := 0; y < rr.Height+1; y++ {
 		Screen.SetContent(
 			rr.X-1,
 			rr.Y+y,
 			'#',
-			nil, defStyle)
+			nil, style)
 		Screen.SetContent(
 			rr.X+es.grid.Width,
 			rr.Y+y,
 			'#',
-			nil, defStyle)
+			nil, style)
 	}
 	for xx := 0; xx < es.grid.Width; xx++ {
 		Screen.SetContent(
 			rr.X+xx,
 			rr.Y+BOARD_HEIGHT,
 			'#',
-			nil, defStyle)
+			nil, style)
 		Screen.SetContent(
 			rr.X+xx,
 			rr.Y,
 			'.',
-			nil, defStyle)
+			nil, style)
 	}
 }
 
@@ -447,17 +469,17 @@ func (es *TetrisField) DrawHoldPiece(rr Area) {
 }
 
 func (es *TetrisField) DrawScore(rr Area) {
-	if es.combo > 1 {
+	// if es.combo > 1 {
 		SetString(
 			rr.X,
 			rr.Y+6,
-			fmt.Sprintf("%dx COMBO", es.combo),
+			fmt.Sprintf("%dx COMBO", es.maxStackHeight),
 			defStyle)
-	}
+	// }
 }
 
 func (es *TetrisField) DrawGrid(rr Area) {
-	for yy := BOARD_HEIGHT; yy < es.grid.Height; yy++ {
+	for yy := BOARD_HEIGHT-4; yy < es.grid.Height; yy++ {
 		for xx := 0; xx < es.grid.Width; xx++ {
 			if es.grid.MustGet(xx, yy) != 0 {
 				color := PieceColors[es.grid.MustGet(xx, yy)-1]
@@ -538,6 +560,18 @@ func (es *TetrisField) SetPiece(idx int) {
 }
 
 func (es *TetrisField) GetRandomPiece() {
+	// If the next piece will collide with the grid, the game is over
+	nextPiece := Pieces[es.nextPieces[0]][0]
+	gridOffsetX := nextPiece.Width/2 + 1
+	gridOffsetY := nextPiece.Height/2 + 1
+	if es.CheckCollision(
+		nextPiece,
+		BOARD_WIDTH/2 - gridOffsetX,
+		BOARD_HEIGHT - gridOffsetY,
+	) {
+		es.gameOver = true
+		return
+	}
 	idx := es.nextPieces[0]
 
 	es.SetPiece(idx)
@@ -777,7 +811,7 @@ func (es *TetrisField) LockPiece() {
 	}
 
 	// Check for a game over
-	pieceOverTop := false
+	maxHeight := 0
 	for x := 0; x < es.grid.Width; x++ {
 		height := 0
 		for y := es.grid.Height - 1; y >= 0; y-- {
@@ -785,16 +819,10 @@ func (es *TetrisField) LockPiece() {
 				height = es.grid.Height - y
 			}
 		}
-		if height > BOARD_HEIGHT {
-			pieceOverTop = true
-			break
-		}
+		maxHeight = max(maxHeight, height)
 	}
 
-	if pieceOverTop {
-		es.gameOver = true
-		return
-	}
+	es.maxStackHeight = maxHeight
 
 	es.GetRandomPiece()
 }
@@ -874,6 +902,16 @@ func (es *TetrisField) AddGarbage(count int) {
 		}
 	}
 
+	for h := 0; h < count; h++ {
+		if es.CheckCollision(
+			es.cpGrid,
+			es.cpX,
+			es.cpY-count+1+h,
+		) {
+			es.cpY = es.cpY - count + h
+		}
+	}
+
 	es.SetHardDropHeight()
 
 	if es.shiftMode {
@@ -881,6 +919,24 @@ func (es *TetrisField) AddGarbage(count int) {
 	}
 
 	es.SetAirborne()
+
+	// Check for game over
+	maxHeight := 0
+	for x := 0; x < es.grid.Width; x++ {
+		height := 0
+		for y := es.grid.Height - 1; y >= 0; y-- {
+			if es.grid.MustGet(x, y) != 0 {
+				height = es.grid.Height - y
+			}
+		}
+		maxHeight = max(maxHeight, height)
+	}
+
+	es.maxStackHeight = maxHeight
+	
+	if maxHeight > BOARD_HEIGHT {
+		es.gameOver = true
+	}
 }
 
 func (es *TetrisField) ClearLines() bool {
