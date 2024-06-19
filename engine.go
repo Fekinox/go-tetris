@@ -53,6 +53,8 @@ func IsDigitRune(ev *tcell.EventKey) bool {
 type LineClearHandler func(garbage, nonGarbage int)
 
 type TetrisField struct {
+	settings GlobalTetrisSettings
+
 	LastRenderDuration float64
 	LastUpdateDuration float64
 
@@ -105,21 +107,21 @@ type TetrisField struct {
 	maxStackHeight int
 }
 
-func NewTetrisField(startingLevel int64) *TetrisField {
+func NewTetrisField(settings GlobalTetrisSettings) *TetrisField {
 	es := TetrisField{
+		settings: settings,
 		LastUpdateDuration: UPDATE_TICK_RATE_MS,
 
 		nextPieces:        make([]int, NUM_NEXT_PIECES),
 		holdPiece:         8,
-		lineClearHandlers: make([]LineClearHandler, 0),
 	}
 
-	es.StartGame(time.Now().UnixNano(), startingLevel)
+	es.StartGame(time.Now().UnixNano())
 
 	return &es
 }
 
-func (es *TetrisField) StartGame(seed int64, startingLevel int64) {
+func (es *TetrisField) StartGame(seed int64) {
 	gen := NewBagRandomizer(seed, 1)
 	es.grid = MakeGrid(BOARD_WIDTH, BOARD_HEIGHT*2, 0)
 	es.holdPiece = 8
@@ -129,7 +131,7 @@ func (es *TetrisField) StartGame(seed int64, startingLevel int64) {
 	es.score = 0
 	es.lines = 0
 	es.combo = 0
-	es.startingLevel = startingLevel
+	es.startingLevel = es.settings.StartingLevel
 	es.level = es.startingLevel
 	speedFactor := int(min(14, es.level-1))
 	es.fallRate =
@@ -146,6 +148,7 @@ func (es *TetrisField) StartGame(seed int64, startingLevel int64) {
 	es.garbageQueue = make([]int, 0, 20)
 
 	es.maxStackHeight = 0
+	es.lineClearHandlers = make([]LineClearHandler, 0)
 
 	es.FillNextPieces()
 	es.GetRandomPiece()
@@ -614,7 +617,7 @@ func (es *TetrisField) Rotate(offset int) {
 }
 
 func (es *TetrisField) HandleReset() {
-	es.StartGame(time.Now().UnixNano(), es.startingLevel)
+	es.StartGame(time.Now().UnixNano())
 }
 
 func (es *TetrisField) MovePiece(dx int) {

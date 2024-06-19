@@ -179,29 +179,60 @@ func (a *App) OpenMenuScene() {
 }
 
 func (a *App) OpenLineClearScene() {
-	gameScene := LineClearScene{}
-	gameScene.Init(a, 40, 1)
+	gameScene := GameScene{}
+	gameScene.Init(
+		a,
+		GlobalTetrisSettings{
+			StartingLevel: 1,
+		},
+		&LineClearSettings{
+			Lines: 40,
+		},
+	)
 
 	a.CurrentScene = &gameScene
 }
 
 func (a *App) OpenEndlessScene() {
-	gameScene := EndlessScene{}
-	gameScene.Init(a, 40, 1)
+	gameScene := GameScene{}
+	gameScene.Init(
+		a,
+		GlobalTetrisSettings{
+			StartingLevel: 1,
+		},
+		&EndlessSettings{
+		},
+	)
 
 	a.CurrentScene = &gameScene
 }
 
 func (a *App) OpenSurvivalScene() {
-	gameScene := SurvivalScene{}
-	gameScene.Init(a, 1)
+	gameScene := GameScene{}
+	gameScene.Init(
+		a,
+		GlobalTetrisSettings{
+			StartingLevel: 1,
+		},
+		&SurvivalSettings{
+			GarbageRate: 1000.0,
+		},
+	)
 
 	a.CurrentScene = &gameScene
 }
 
 func (a *App) OpenCheeseScene() {
-	gameScene := CheeseScene{}
-	gameScene.Init(a, 1, 18)
+	gameScene := GameScene{}
+	gameScene.Init(
+		a,
+		GlobalTetrisSettings{
+			StartingLevel: 1,
+		},
+		&CheeseSettings{
+			Garbage: 18,
+		},
+	)
 
 	a.CurrentScene = &gameScene
 }
