@@ -1,11 +1,16 @@
 package main
 
-import "github.com/gdamore/tcell/v2"
+import (
+	"time"
+
+	"github.com/gdamore/tcell/v2"
+)
 
 type GameScene struct {
 	app *App
 	es *TetrisField
 
+	seed int64
 	globalSettings GlobalTetrisSettings
 	objectiveSettings ObjectiveSettings
 	objective Objective
@@ -17,7 +22,8 @@ func (gs *GameScene) Init(
 	objectiveSettings ObjectiveSettings,
 ) {
 	gs.app = app
-	gs.es = NewTetrisField(globalSettings)
+	gs.seed = time.Now().UnixNano()
+	gs.es = NewTetrisField(gs.seed, globalSettings)
 
 	gs.objectiveSettings = objectiveSettings
 	gs.objective = gs.objectiveSettings.Init(gs.es)
@@ -31,7 +37,8 @@ func (gs *GameScene) HandleAction(act Action) {
 	case Quit:
 		gs.app.OpenMenuScene()
 	case Reset:
-		gs.es.HandleReset()
+		gs.seed = time.Now().UnixNano()
+		gs.es.HandleReset(gs.seed)
 		gs.objective = gs.objectiveSettings.Init(gs.es)
 	default:
 		gs.objective.HandleAction(act, gs.es)

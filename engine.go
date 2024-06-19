@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
-	"time"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -107,7 +106,7 @@ type TetrisField struct {
 	maxStackHeight int
 }
 
-func NewTetrisField(settings GlobalTetrisSettings) *TetrisField {
+func NewTetrisField(seed int64, settings GlobalTetrisSettings) *TetrisField {
 	es := TetrisField{
 		settings: settings,
 		LastUpdateDuration: UPDATE_TICK_RATE_MS,
@@ -116,7 +115,7 @@ func NewTetrisField(settings GlobalTetrisSettings) *TetrisField {
 		holdPiece:         8,
 	}
 
-	es.StartGame(time.Now().UnixNano())
+	es.StartGame(seed)
 
 	return &es
 }
@@ -156,9 +155,6 @@ func (es *TetrisField) StartGame(seed int64) {
 
 
 func (es *TetrisField) HandleAction(act Action) {
-	if act == Reset {
-		es.HandleReset()
-	}
 	if !es.gameOver {
 		switch act {
 		case MoveUp | RotateCW:
@@ -616,8 +612,8 @@ func (es *TetrisField) Rotate(offset int) {
 
 }
 
-func (es *TetrisField) HandleReset() {
-	es.StartGame(time.Now().UnixNano())
+func (es *TetrisField) HandleReset(newSeed int64) {
+	es.StartGame(newSeed)
 }
 
 func (es *TetrisField) MovePiece(dx int) {
