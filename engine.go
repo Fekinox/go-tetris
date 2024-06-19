@@ -105,6 +105,8 @@ type TetrisField struct {
 	failed			bool
 	gameOverReason string
 
+	gameStarted bool
+
 	maxStackHeight int
 }
 
@@ -154,7 +156,8 @@ func (es *TetrisField) StartGame(seed int64) {
 	es.lineClearHandlers = make([]LineClearHandler, 0)
 
 	es.FillNextPieces()
-	// es.GetRandomPiece()
+
+	es.gameStarted = false
 }
 
 
@@ -233,12 +236,12 @@ func (es *TetrisField) Draw(sw, sh int, rr Area, lag float64) {
 
 	es.DrawWell(gameArea)
 
-	if !es.gameOver {
+	if !es.gameOver && es.gameStarted {
 		es.dashParticles.Draw(gameArea)
 	}
 
 	// Snap indicators
-	if es.shiftMode && !es.gameOver {
+	if es.shiftMode && !es.gameOver && es.gameStarted {
 		es.DrawPiece(
 			es.cpGrid,
 			gameArea.X+es.leftSnapPosition,
@@ -277,7 +280,7 @@ func (es *TetrisField) Draw(sw, sh int, rr Area, lag float64) {
 	}
 
 	// Hard drop indicator
-	if !es.gameOver {
+	if !es.gameOver && es.gameStarted {
 		es.DrawPiece(
 			es.cpGrid,
 			gameArea.X+es.cpX,
@@ -288,7 +291,7 @@ func (es *TetrisField) Draw(sw, sh int, rr Area, lag float64) {
 	}
 
 	// Next piece indicator
-	if BOARD_HEIGHT - es.maxStackHeight < 4 {
+	if BOARD_HEIGHT - es.maxStackHeight < 4 && es.gameStarted && !es.gameOver {
 		nextPiece := Pieces[es.nextPieces[0]][0]
 		gridOffsetX := nextPiece.Width/2 + 1
 		gridOffsetY := nextPiece.Height/2 + 1
@@ -309,13 +312,16 @@ func (es *TetrisField) Draw(sw, sh int, rr Area, lag float64) {
 		pieceStyle =
 			SolidPieceStyle(es.cpIdx)
 	}
-	es.DrawPiece(
-		es.cpGrid,
-		gameArea.X+es.cpX,
-		gameArea.Y+es.cpY-BOARD_HEIGHT,
-		'o',
-		pieceStyle,
-	)
+
+	if es.gameStarted {
+		es.DrawPiece(
+			es.cpGrid,
+			gameArea.X+es.cpX,
+			gameArea.Y+es.cpY-BOARD_HEIGHT,
+			'o',
+			pieceStyle,
+		)
+	}
 
 	es.DrawGrid(gameArea)
 

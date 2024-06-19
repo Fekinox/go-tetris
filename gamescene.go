@@ -48,8 +48,13 @@ func (gs *GameScene) HandleAction(act Action) {
 		gs.seed = time.Now().UnixNano()
 		gs.es.HandleReset(gs.seed)
 		gs.objective = gs.objectiveSettings.Init(gs.es)
+
+		gs.countdownTimer = COUNTDOWN_DURATION_SECS
+		gs.gameStarted = false
 	default:
-		gs.objective.HandleAction(act, gs.es)
+		if gs.gameStarted {
+			gs.objective.HandleAction(act, gs.es)
+		}
 	}
 }
 
@@ -62,6 +67,7 @@ func (gs *GameScene) Update() {
 	gs.countdownTimer -= UPDATE_TICK_RATE_MS/1000.0
 	if gs.countdownTimer < 0 {
 		gs.gameStarted = true
+		gs.es.gameStarted = true
 		gs.es.GetRandomPiece()
 	}
 }
@@ -73,4 +79,21 @@ func (gs *GameScene) Draw(sw, sh int, rr Area, lag float64) {
 
 	gs.es.Draw(sw, sh, playingField, lag)
 	gs.es.DrawStats(rr, anchorX, anchorY)
+
+	if !gs.gameStarted {
+		textAnchorX := playingField.X + BOARD_WIDTH/2
+		textAnchorY := playingField.Y + 4
+		var theText string
+		if gs.countdownTimer > 3.0 {
+			theText = "3..."
+		} else if gs.countdownTimer > 2.0 {
+			theText = "2..."
+		} else if gs.countdownTimer > 1.0 {
+			theText = "1..."
+		} else {
+			theText = "GO!!"
+		}
+
+		SetCenteredString(textAnchorX, textAnchorY, theText, defStyle)
+	}
 }
