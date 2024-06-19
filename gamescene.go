@@ -6,6 +6,8 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
+const COUNTDOWN_DURATION_SECS = 4.0
+
 type GameScene struct {
 	app *App
 	es *TetrisField
@@ -14,6 +16,9 @@ type GameScene struct {
 	globalSettings GlobalTetrisSettings
 	objectiveSettings ObjectiveSettings
 	objective Objective
+
+	countdownTimer float64
+	gameStarted bool
 }
 
 func (gs *GameScene) Init(
@@ -27,6 +32,9 @@ func (gs *GameScene) Init(
 
 	gs.objectiveSettings = objectiveSettings
 	gs.objective = gs.objectiveSettings.Init(gs.es)
+
+	gs.countdownTimer = COUNTDOWN_DURATION_SECS
+	gs.gameStarted = false
 }
 
 func (gs *GameScene) HandleEvent(ev tcell.Event) {
@@ -46,7 +54,16 @@ func (gs *GameScene) HandleAction(act Action) {
 }
 
 func (gs *GameScene) Update() {
-	gs.objective.Update(gs.es)
+	if gs.gameStarted {
+		gs.objective.Update(gs.es)
+		return
+	}
+
+	gs.countdownTimer -= UPDATE_TICK_RATE_MS/1000.0
+	if gs.countdownTimer < 0 {
+		gs.gameStarted = true
+		gs.es.GetRandomPiece()
+	}
 }
 
 func (gs *GameScene) Draw(sw, sh int, rr Area, lag float64) {

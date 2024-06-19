@@ -42,7 +42,7 @@ func (co *CheeseObjective) OnLineClear(garbage int, es *TetrisField) {
 	for i := 0; i < garbage; i++ {
 		co.CurrentGarbage -= 1
 		if co.CurrentGarbage == 0 {
-			es.gameOver = true
+			es.ObjectiveComplete("Cleared all garbage")
 		}
 		if co.CurrentGarbage >= MAX_CHEESE_GARBAGE_LINES {
 			es.QueueGarbage(1)

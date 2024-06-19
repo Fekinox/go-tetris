@@ -24,6 +24,6 @@ func (lco *LineClearObjective) HandleAction(act Action, es *TetrisField) {
 	es.HandleAction(act)
 
 	if es.lines >= lco.Lines {
-		es.gameOver = true
+		es.ObjectiveComplete("Cleared all lines")
 	}
 }

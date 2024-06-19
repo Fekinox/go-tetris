@@ -102,6 +102,8 @@ type TetrisField struct {
 	lineClearHandlers []LineClearHandler
 
 	gameOver          bool
+	failed			bool
+	gameOverReason string
 
 	maxStackHeight int
 }
@@ -142,6 +144,8 @@ func (es *TetrisField) StartGame(seed int64) {
 	es.pieceCount = 0
 
 	es.gameOver = false
+	es.failed = false
+	es.gameOverReason = ""
 
 	es.garbageRng = rand.New(rand.NewSource(seed))
 	es.garbageQueue = make([]int, 0, 20)
@@ -150,7 +154,7 @@ func (es *TetrisField) StartGame(seed int64) {
 	es.lineClearHandlers = make([]LineClearHandler, 0)
 
 	es.FillNextPieces()
-	es.GetRandomPiece()
+	// es.GetRandomPiece()
 }
 
 
@@ -1015,10 +1019,17 @@ func (es *TetrisField) DrawStats(rr Area, anchorX, anchorY int) {
 		es.pieceCount,
 	)
 
-	piecesPerSecondString := fmt.Sprintf(
-		"%.2f p/s",
-		float64(es.pieceCount)/(rawTime/(1000)),
-	)
+	var piecesPerSecondString string
+	pps := float64(es.pieceCount)/(rawTime/(1000))
+
+	if math.IsNaN(pps) || math.IsInf(pps, 0) {
+		piecesPerSecondString = "inf p/s"
+	} else {
+		piecesPerSecondString = fmt.Sprintf(
+			"%.2f p/s",
+			pps,
+		)
+	}
 
 	SetStringArray(
 		anchorX,
@@ -1034,9 +1045,15 @@ func (es *TetrisField) DrawStats(rr Area, anchorX, anchorY int) {
 		"%d",
 		es.lines)
 
-	linesPerMinuteString := fmt.Sprintf(
-		"%.2f l/m",
-		float64(es.lines)/(rawTime/(1000*60)))
+	var linesPerMinuteString string
+	lpm := float64(es.lines)/(rawTime/(1000*60))
+	if math.IsNaN(lpm) || math.IsInf(lpm, 0) {
+		linesPerMinuteString = "inf l/m"
+	} else {
+		linesPerMinuteString = fmt.Sprintf(
+			"%.2f l/m",
+			lpm)
+	}
 
 	SetStringArray(
 		anchorX,
@@ -1155,4 +1172,22 @@ func (es *TetrisField) DashParticles(
 
 func (es *TetrisField) AddLineClearHandler(handler LineClearHandler) {
 	es.lineClearHandlers = append(es.lineClearHandlers, handler)
+}
+
+func (es *TetrisField) GarbageOut() {
+	es.gameOver = true
+	es.failed = true
+	es.gameOverReason = "Garbage overflowed the game board"
+}
+
+func (es *TetrisField) BlockOut() {
+	es.gameOver = true
+	es.failed = true
+	es.gameOverReason = "Could not place next piece"
+}
+
+func (es *TetrisField) ObjectiveComplete(text string) {
+	es.gameOver = true
+	es.failed = false
+	es.gameOverReason = text
 }
