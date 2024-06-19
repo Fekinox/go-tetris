@@ -1,12 +1,17 @@
 package main
 
 import (
+	"math"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
 )
 
 const COUNTDOWN_DURATION_SECS = 4.0
+
+var COUNTDOWN_TIMER_LEVELS = []rune(
+	" .-*%#",
+)
 
 type GameScene struct {
 	app *App
@@ -95,5 +100,28 @@ func (gs *GameScene) Draw(sw, sh int, rr Area, lag float64) {
 		}
 
 		SetCenteredString(textAnchorX, textAnchorY, theText, defStyle)
+		gs.DrawProgressBar(
+			textAnchorX, textAnchorY + 1,
+			gs.countdownTimer - math.Floor(gs.countdownTimer),
+		)
+	}
+}
+
+func (gs *GameScene) DrawProgressBar(anchorX, anchorY int, value float64) {
+	for i := 0; i < BOARD_WIDTH; i++ {
+		intensity := value*10 - float64(i)
+		intIntensity := max(
+			0,
+			min(
+				len(COUNTDOWN_TIMER_LEVELS)-1,
+				int(0.25*intensity*float64(len(PARTICLE_LEVELS))),
+			),
+		)
+		Screen.SetContent(
+			anchorX + i - BOARD_WIDTH/2,
+			anchorY,
+			COUNTDOWN_TIMER_LEVELS[intIntensity],
+			nil, defStyle,
+		)
 	}
 }
