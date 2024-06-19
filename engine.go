@@ -151,42 +151,6 @@ func (es *TetrisField) StartGame(seed int64, startingLevel int64) {
 	es.GetRandomPiece()
 }
 
-func (es *TetrisField) HandleInput(ev tcell.Event) {
-	switch ev := ev.(type) {
-	case *tcell.EventKey:
-		if IsRune(ev, 'r') || IsRune(ev, 'R') {
-			es.HandleReset()
-		}
-		if !es.gameOver {
-			if ev.Key() == tcell.KeyUp ||
-				IsRune(ev, 'w') || IsRune(ev, 'W') ||
-				IsRune(ev, 'x') || IsRune(ev, 'X') {
-				es.Rotate(1)
-			}
-			if IsRune(ev, 'z') || IsRune(ev, 'Z') {
-				es.Rotate(-1)
-			}
-			if IsRune(ev, 'f') || IsRune(ev, 'F') {
-				es.ToggleShiftMode()
-			}
-			if ev.Key() == tcell.KeyDown || IsRune(ev, 's') || IsRune(ev, 'S') {
-				es.SoftDrop()
-			}
-			if ev.Key() == tcell.KeyLeft || IsRune(ev, 'a') || IsRune(ev, 'A') {
-				es.MovePiece(-1)
-			}
-			if ev.Key() == tcell.KeyRight || IsRune(ev, 'd') || IsRune(ev, 'D') {
-				es.MovePiece(1)
-			}
-			if IsRune(ev, ' ') {
-				es.HardDrop()
-			}
-			if IsRune(ev, ';') || IsRune(ev, 'c') || IsRune(ev, 'C') {
-				es.SwapHoldPiece()
-			}
-		}
-	}
-}
 
 func (es *TetrisField) HandleAction(act Action) {
 	if act == Reset {
