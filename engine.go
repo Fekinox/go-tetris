@@ -105,6 +105,8 @@ type TetrisField struct {
 	failed			bool
 	gameOverReason string
 
+	finesse int64
+
 	gameStarted bool
 
 	maxStackHeight int
