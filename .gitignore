@@ -4,4 +4,4 @@ build
 .build.sh
 log
 gotetris.zip
-replay-*
+replays/

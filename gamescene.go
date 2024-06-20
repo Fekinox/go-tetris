@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"math"
 	"os"
 	"time"
@@ -104,12 +106,16 @@ func (gs *GameScene) OnGameOver(failed bool, reason string) {
 		Actions: gs.actions,
 	}
 
-	f, err := os.Create(fmt.Sprintf("replay-%v", time.Now()))
+	err := os.Mkdir("replays", 0755)
+	if err != nil && !errors.Is(err, fs.ErrExist) {
+		return
+	}
+
+	file, err := os.Create(fmt.Sprintf("replays/rp-%v", time.Now()))
 	if err != nil {
 		return
 	}
-	defer f.Close()
-	replayData.Encode(f)
+	replayData.Encode(file)
 }
 
 func (gs *GameScene) Draw(sw, sh int, rr Area, lag float64) {
