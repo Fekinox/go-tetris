@@ -185,8 +185,9 @@ func (a *App) OpenLineClearScene() {
 		GlobalTetrisSettings{
 			StartingLevel: 1,
 		},
+		LineClear,
 		&LineClearSettings{
-			Lines: 40,
+			Lines: 4,
 		},
 	)
 
@@ -200,6 +201,7 @@ func (a *App) OpenEndlessScene() {
 		GlobalTetrisSettings{
 			StartingLevel: 1,
 		},
+		Endless,
 		&EndlessSettings{
 		},
 	)
@@ -214,6 +216,7 @@ func (a *App) OpenSurvivalScene() {
 		GlobalTetrisSettings{
 			StartingLevel: 1,
 		},
+		Survival,
 		&SurvivalSettings{
 			GarbageRate: 1000.0,
 		},
@@ -229,6 +232,7 @@ func (a *App) OpenCheeseScene() {
 		GlobalTetrisSettings{
 			StartingLevel: 1,
 		},
+		Cheese,
 		&CheeseSettings{
 			Garbage: 18,
 		},

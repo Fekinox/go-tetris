@@ -1,6 +1,6 @@
 package main
 
-type Action int
+type Action int8
 
 const (
 	MoveUp Action = iota

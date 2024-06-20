@@ -3,7 +3,7 @@ package main
 const MAX_CHEESE_GARBAGE_LINES = 10
 
 type CheeseSettings struct {
-	Garbage int	
+	Garbage int64
 }
 
 func (cs *CheeseSettings) Init(es *TetrisField) Objective {
@@ -11,7 +11,8 @@ func (cs *CheeseSettings) Init(es *TetrisField) Objective {
 		CurrentGarbage: cs.Garbage,
 	}
 
-	for i := 0; i < co.CurrentGarbage && i < MAX_CHEESE_GARBAGE_LINES; i++ {
+	var i int64
+	for i = 0; i < co.CurrentGarbage && i < MAX_CHEESE_GARBAGE_LINES; i++ {
 		es.AddGarbage(1)
 	}
 
@@ -23,7 +24,7 @@ func (cs *CheeseSettings) Init(es *TetrisField) Objective {
 }
 
 type CheeseObjective struct {
-	CurrentGarbage int
+	CurrentGarbage int64
 }
 
 func (co *CheeseObjective) Update(es *TetrisField) {
