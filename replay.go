@@ -1,6 +1,5 @@
 package main
 
-// FIXME: broken
 import (
 	"encoding/base64"
 	"encoding/binary"
