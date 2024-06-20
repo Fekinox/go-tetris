@@ -5,20 +5,20 @@ type SurvivalSettings struct {
 }
 
 type SurvivalObjective struct {
-	GarbageRate float64
+	GarbageRate  float64
 	GarbageTimer float64
 }
 
 func (ss *SurvivalSettings) Init(es *TetrisField) Objective {
 	return &SurvivalObjective{
-		GarbageRate: ss.GarbageRate,
+		GarbageRate:  ss.GarbageRate,
 		GarbageTimer: ss.GarbageRate,
 	}
 }
 
 func (so *SurvivalObjective) Update(es *TetrisField) {
 	if es.gameOver {
-		return 
+		return
 	}
 
 	es.Update()

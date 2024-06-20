@@ -101,10 +101,10 @@ type TetrisField struct {
 	garbageQueue []int
 
 	lineClearHandlers []LineClearHandler
-	gameOverHandlers []GameOverHandler
+	gameOverHandlers  []GameOverHandler
 
-	gameOver          bool
-	failed			bool
+	gameOver       bool
+	failed         bool
 	gameOverReason string
 
 	finesse int64
@@ -116,11 +116,11 @@ type TetrisField struct {
 
 func NewTetrisField(seed int64, settings GlobalTetrisSettings) *TetrisField {
 	es := TetrisField{
-		settings: settings,
+		settings:           settings,
 		LastUpdateDuration: UPDATE_TICK_RATE_MS,
 
-		nextPieces:        make([]int, NUM_NEXT_PIECES),
-		holdPiece:         8,
+		nextPieces: make([]int, NUM_NEXT_PIECES),
+		holdPiece:  8,
 	}
 
 	es.StartGame(seed)
@@ -165,7 +165,6 @@ func (es *TetrisField) StartGame(seed int64) {
 
 	es.gameStarted = false
 }
-
 
 func (es *TetrisField) HandleAction(act Action) {
 	if !es.gameOver {
@@ -297,15 +296,15 @@ func (es *TetrisField) Draw(sw, sh int, rr Area, lag float64) {
 	}
 
 	// Next piece indicator
-	if BOARD_HEIGHT - es.maxStackHeight < 4 && es.gameStarted && !es.gameOver {
+	if BOARD_HEIGHT-es.maxStackHeight < 4 && es.gameStarted && !es.gameOver {
 		nextPiece := Pieces[es.nextPieces[0]][0]
 		gridOffsetX := nextPiece.Width/2 + 1
 		gridOffsetY := nextPiece.Height/2 + 1
 
 		es.DrawPiece(
 			nextPiece,
-			gameArea.X + BOARD_WIDTH/2 - gridOffsetX,
-			gameArea.Y - gridOffsetY,
+			gameArea.X+BOARD_WIDTH/2-gridOffsetX,
+			gameArea.Y-gridOffsetY,
 			'X',
 			LightPieceStyle(6),
 		)
@@ -342,7 +341,7 @@ func (es *TetrisField) Draw(sw, sh int, rr Area, lag float64) {
 
 func (es *TetrisField) DrawWell(rr Area) {
 	style := defStyle
-	if BOARD_HEIGHT - es.maxStackHeight < 4 {
+	if BOARD_HEIGHT-es.maxStackHeight < 4 {
 		style = style.Foreground(tcell.ColorRed)
 	}
 
@@ -449,16 +448,16 @@ func (es *TetrisField) DrawHoldPiece(rr Area) {
 
 func (es *TetrisField) DrawScore(rr Area) {
 	// if es.combo > 1 {
-		SetString(
-			rr.X,
-			rr.Y+6,
-			fmt.Sprintf("%dx COMBO", es.maxStackHeight),
-			defStyle)
+	SetString(
+		rr.X,
+		rr.Y+6,
+		fmt.Sprintf("%dx COMBO", es.maxStackHeight),
+		defStyle)
 	// }
 }
 
 func (es *TetrisField) DrawGrid(rr Area) {
-	for yy := BOARD_HEIGHT-4; yy < es.grid.Height; yy++ {
+	for yy := BOARD_HEIGHT - 4; yy < es.grid.Height; yy++ {
 		for xx := 0; xx < es.grid.Width; xx++ {
 			if es.grid.MustGet(xx, yy) != 0 {
 				color := PieceColors[es.grid.MustGet(xx, yy)-1]
@@ -545,8 +544,8 @@ func (es *TetrisField) GetRandomPiece() {
 	gridOffsetY := nextPiece.Height/2 + 1
 	if es.CheckCollision(
 		nextPiece,
-		BOARD_WIDTH/2 - gridOffsetX,
-		BOARD_HEIGHT - gridOffsetY,
+		BOARD_WIDTH/2-gridOffsetX,
+		BOARD_HEIGHT-gridOffsetY,
 	) {
 		es.BlockOut()
 		return
@@ -912,7 +911,7 @@ func (es *TetrisField) AddGarbage(count int) {
 	}
 
 	es.maxStackHeight = maxHeight
-	
+
 	if maxHeight > BOARD_HEIGHT {
 		es.GarbageOut()
 	}
@@ -1032,7 +1031,7 @@ func (es *TetrisField) DrawStats(rr Area, anchorX, anchorY int) {
 	)
 
 	var piecesPerSecondString string
-	pps := float64(es.pieceCount)/(rawTime/(1000))
+	pps := float64(es.pieceCount) / (rawTime / (1000))
 
 	if math.IsNaN(pps) || math.IsInf(pps, 0) {
 		piecesPerSecondString = "inf p/s"
@@ -1058,7 +1057,7 @@ func (es *TetrisField) DrawStats(rr Area, anchorX, anchorY int) {
 		es.lines)
 
 	var linesPerMinuteString string
-	lpm := float64(es.lines)/(rawTime/(1000*60))
+	lpm := float64(es.lines) / (rawTime / (1000 * 60))
 	if math.IsNaN(lpm) || math.IsInf(lpm, 0) {
 		linesPerMinuteString = "inf l/m"
 	} else {

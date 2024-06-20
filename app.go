@@ -202,8 +202,7 @@ func (a *App) OpenEndlessScene() {
 			StartingLevel: 1,
 		},
 		Endless,
-		&EndlessSettings{
-		},
+		&EndlessSettings{},
 	)
 
 	a.CurrentScene = &gameScene

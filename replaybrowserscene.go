@@ -11,15 +11,15 @@ type ReplayBrowserScene struct {
 	app *App
 
 	replayFileNames []string
-	loaded bool
-	menuFocus int
+	loaded          bool
+	menuFocus       int
 }
 
 func (ms *ReplayBrowserScene) Init(app *App) {
 	ms.app = app
 
 	go func() {
-		replayDir, err := os.Open("replays")	
+		replayDir, err := os.Open("replays")
 		if err != nil {
 			return
 
@@ -76,7 +76,6 @@ func (ms *ReplayBrowserScene) ConfirmAction() {
 	if err != nil {
 		panic(err)
 	}
-	
 
 	ms.app.OpenReplayScene(replayData)
 }
@@ -98,13 +97,13 @@ func (ms *ReplayBrowserScene) Draw(sw, sh int, rr Area, lag float64) {
 					rr.Y+2+2*i,
 					'*',
 					nil, defStyle)
-				}
+			}
 
-				SetString(
-					rr.X+2,
-					rr.Y+2+2*i,
-					opt,
-					style)
-				}
+			SetString(
+				rr.X+2,
+				rr.Y+2+2*i,
+				opt,
+				style)
+		}
 	}
 }

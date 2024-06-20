@@ -20,5 +20,5 @@ const (
 
 type ReplayAction struct {
 	Action Action
-	Frame int64
+	Frame  int64
 }

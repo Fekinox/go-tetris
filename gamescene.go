@@ -19,16 +19,16 @@ var COUNTDOWN_TIMER_LEVELS = []rune(
 
 type GameScene struct {
 	app *App
-	es *TetrisField
+	es  *TetrisField
 
-	seed int64
-	globalSettings GlobalTetrisSettings
-	objectiveID ObjectiveID
+	seed              int64
+	globalSettings    GlobalTetrisSettings
+	objectiveID       ObjectiveID
 	objectiveSettings ObjectiveSettings
-	objective Objective
+	objective         Objective
 
 	countdownTimer float64
-	gameStarted bool
+	gameStarted    bool
 
 	actions []ReplayAction
 }
@@ -80,7 +80,7 @@ func (gs *GameScene) HandleAction(act Action) {
 		if gs.gameStarted {
 			gs.actions = append(gs.actions, ReplayAction{
 				Action: act,
-				Frame: gs.es.frameCount,
+				Frame:  gs.es.frameCount,
 			})
 			gs.objective.HandleAction(act, gs.es)
 		}
@@ -93,7 +93,7 @@ func (gs *GameScene) Update() {
 		return
 	}
 
-	gs.countdownTimer -= UPDATE_TICK_RATE_MS/1000.0
+	gs.countdownTimer -= UPDATE_TICK_RATE_MS / 1000.0
 	if gs.countdownTimer < 0 {
 		gs.gameStarted = true
 		gs.es.gameStarted = true
@@ -103,11 +103,11 @@ func (gs *GameScene) Update() {
 
 func (gs *GameScene) OnGameOver(failed bool, reason string) {
 	replayData := ReplayData{
-		Seed: gs.seed,
-		TetrisSettings: gs.globalSettings,
-		ObjectiveID: gs.objectiveID,
+		Seed:              gs.seed,
+		TetrisSettings:    gs.globalSettings,
+		ObjectiveID:       gs.objectiveID,
 		ObjectiveSettings: gs.objectiveSettings,
-		Actions: gs.actions,
+		Actions:           gs.actions,
 	}
 
 	err := os.Mkdir("replays", 0755)
@@ -150,8 +150,8 @@ func (gs *GameScene) Draw(sw, sh int, rr Area, lag float64) {
 
 		SetCenteredString(textAnchorX, textAnchorY, theText, defStyle)
 		gs.DrawProgressBar(
-			textAnchorX, textAnchorY + 1,
-			gs.countdownTimer - math.Floor(gs.countdownTimer),
+			textAnchorX, textAnchorY+1,
+			gs.countdownTimer-math.Floor(gs.countdownTimer),
 		)
 	}
 }
@@ -167,7 +167,7 @@ func (gs *GameScene) DrawProgressBar(anchorX, anchorY int, value float64) {
 			),
 		)
 		Screen.SetContent(
-			anchorX + i - BOARD_WIDTH/2,
+			anchorX+i-BOARD_WIDTH/2,
 			anchorY,
 			COUNTDOWN_TIMER_LEVELS[intIntensity],
 			nil, defStyle,

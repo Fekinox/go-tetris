@@ -8,11 +8,11 @@ import (
 )
 
 type ReplayData struct {
-	Seed	int64
-	TetrisSettings GlobalTetrisSettings
-	ObjectiveID	ObjectiveID
+	Seed              int64
+	TetrisSettings    GlobalTetrisSettings
+	ObjectiveID       ObjectiveID
 	ObjectiveSettings ObjectiveSettings
-	Actions []ReplayAction
+	Actions           []ReplayAction
 }
 
 func (rd *ReplayData) Encode(w io.Writer) error {
@@ -92,7 +92,7 @@ func (rd *ReplayData) Decode(r io.Reader) error {
 		}
 		rd.ObjectiveSettings = &lineclear
 	case Survival:
-		var survival SurvivalSettings 
+		var survival SurvivalSettings
 		err = binary.Read(base64Decoder, binary.LittleEndian, &survival)
 		if err != nil {
 			return err
@@ -106,7 +106,7 @@ func (rd *ReplayData) Decode(r io.Reader) error {
 		}
 		rd.ObjectiveSettings = &endless
 	case Cheese:
-		var cheese CheeseSettings 
+		var cheese CheeseSettings
 		err = binary.Read(base64Decoder, binary.LittleEndian, &cheese)
 		if err != nil {
 			return err
@@ -121,7 +121,7 @@ func (rd *ReplayData) Decode(r io.Reader) error {
 	if err != nil {
 		return err
 	}
-	
+
 	rd.Actions = make([]ReplayAction, numActions)
 	var i int64
 	for i = 0; i < numActions; i++ {

@@ -27,12 +27,12 @@ func (ms *MenuScene) HandleEvent(ev tcell.Event) {
 
 func (ms *MenuScene) HandleAction(act Action) {
 	switch act {
-		case MoveUp:
-			ms.menuFocus = max(0, ms.menuFocus-1)
-		case MoveDown:
-			ms.menuFocus = min(len(MENU_OPTIONS), ms.menuFocus+1)
-		case MenuConfirm:
-			ms.ConfirmAction()
+	case MoveUp:
+		ms.menuFocus = max(0, ms.menuFocus-1)
+	case MoveDown:
+		ms.menuFocus = min(len(MENU_OPTIONS), ms.menuFocus+1)
+	case MenuConfirm:
+		ms.ConfirmAction()
 	}
 }
 

@@ -1,10 +1,10 @@
 package main
 
 type GlobalTetrisSettings struct {
-	StartingLevel int64
-	MaxResets int64
-	LockDelay int64
-	BaseGravity int64
+	StartingLevel   int64
+	MaxResets       int64
+	LockDelay       int64
+	BaseGravity     int64
 	GravityIncrease int64
 }
 
