@@ -108,14 +108,18 @@ func (gs *GameScene) OnGameOver(failed bool, reason string) {
 
 	err := os.Mkdir("replays", 0755)
 	if err != nil && !errors.Is(err, fs.ErrExist) {
-		return
+		panic(err)
 	}
 
 	file, err := os.Create(fmt.Sprintf("replays/rp-%v", time.Now()))
 	if err != nil {
-		return
+		panic(err)
 	}
-	replayData.Encode(file)
+	defer file.Close()
+	err = replayData.Encode(file)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (gs *GameScene) Draw(sw, sh int, rr Area, lag float64) {

@@ -7,6 +7,7 @@ var MENU_OPTIONS = []string{
 	"Endless",
 	"Survival",
 	"Cheese",
+	"Replays",
 	"Credits",
 	"Quit",
 }
@@ -49,8 +50,10 @@ func (ms *MenuScene) ConfirmAction() {
 	case 3:
 		ms.app.OpenCheeseScene()
 	case 4:
-		break
+		ms.app.OpenReplayMenuScene()
 	case 5:
+		break
+	case 6:
 		ms.app.WillQuit = true
 	}
 }

@@ -548,7 +548,7 @@ func (es *TetrisField) GetRandomPiece() {
 		BOARD_WIDTH/2 - gridOffsetX,
 		BOARD_HEIGHT - gridOffsetY,
 	) {
-		es.gameOver = true
+		es.BlockOut()
 		return
 	}
 	idx := es.nextPieces[0]
@@ -558,7 +558,7 @@ func (es *TetrisField) GetRandomPiece() {
 	for i := 0; i < NUM_NEXT_PIECES-1; i++ {
 		es.nextPieces[i] = es.nextPieces[i+1]
 	}
-	es.nextPieces[NUM_NEXT_PIECES-2] = es.pieceGenerator.NextPiece()
+	es.nextPieces[NUM_NEXT_PIECES-1] = es.pieceGenerator.NextPiece()
 }
 
 func (es *TetrisField) ToggleShiftMode() {
@@ -914,7 +914,7 @@ func (es *TetrisField) AddGarbage(count int) {
 	es.maxStackHeight = maxHeight
 	
 	if maxHeight > BOARD_HEIGHT {
-		es.gameOver = true
+		es.GarbageOut()
 	}
 }
 
