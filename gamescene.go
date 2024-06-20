@@ -14,7 +14,7 @@ import (
 const COUNTDOWN_DURATION_SECS = 4.0
 
 var COUNTDOWN_TIMER_LEVELS = []rune(
-	" .-*%#",
+	" .-*-. ",
 )
 
 type GameScene struct {
