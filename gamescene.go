@@ -73,6 +73,7 @@ func (gs *GameScene) HandleAction(act Action) {
 		gs.gameStarted = false
 
 		gs.actions = make([]ReplayAction, 0)
+
 		gs.es.AddGameOverHandler(func(failed bool, reason string) {
 			gs.OnGameOver(failed, reason)
 		})
