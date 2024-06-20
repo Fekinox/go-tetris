@@ -1,11 +1,7 @@
 package main
 
 import (
-	"errors"
-	"fmt"
-	"io/fs"
 	"math"
-	"os"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -99,27 +95,27 @@ func (gs *GameScene) Update() {
 }
 
 func (gs *GameScene) OnGameOver(failed bool, reason string) {
-	replayData := ReplayData{
-		Seed: gs.seed,
-		TetrisSettings: gs.globalSettings,
-		ObjectiveSettings: gs.objectiveSettings,
-		Actions: gs.actions,
-	}
+	// replayData := ReplayData{
+	// 	Seed: gs.seed,
+	// 	TetrisSettings: gs.globalSettings,
+	// 	ObjectiveSettings: gs.objectiveSettings,
+	// 	Actions: gs.actions,
+	// }
 
-	err := os.Mkdir("replays", 0755)
-	if err != nil && !errors.Is(err, fs.ErrExist) {
-		panic(err)
-	}
+	// err := os.Mkdir("replays", 0755)
+	// if err != nil && !errors.Is(err, fs.ErrExist) {
+	// 	panic(err)
+	// }
 
-	file, err := os.Create(fmt.Sprintf("replays/rp-%v", time.Now()))
-	if err != nil {
-		panic(err)
-	}
-	defer file.Close()
-	err = replayData.Encode(file)
-	if err != nil {
-		panic(err)
-	}
+	// file, err := os.Create(fmt.Sprintf("replays/rp-%v", time.Now()))
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// defer file.Close()
+	// err = replayData.Encode(file)
+	// if err != nil {
+	// 	panic(err)
+	// }
 }
 
 func (gs *GameScene) Draw(sw, sh int, rr Area, lag float64) {
