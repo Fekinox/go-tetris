@@ -75,11 +75,11 @@ func (gs *GameScene) HandleAction(act Action) {
 		})
 	default:
 		if gs.gameStarted {
-			gs.objective.HandleAction(act, gs.es)
 			gs.actions = append(gs.actions, ReplayAction{
 				Action: act,
 				Frame: gs.es.frameCount,
 			})
+			gs.objective.HandleAction(act, gs.es)
 		}
 	}
 }
