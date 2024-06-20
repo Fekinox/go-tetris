@@ -37,7 +37,8 @@ func NewApp() *App {
 	Screen.Clear()
 
 	app := &App{
-		DefaultStyle:  tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorReset),
+		DefaultStyle: tcell.StyleDefault.Background(tcell.ColorReset).
+			Foreground(tcell.ColorReset),
 		keyActionMap:  make(map[tcell.Key]Action),
 		runeActionMap: make(map[rune]Action),
 	}

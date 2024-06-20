@@ -28,7 +28,8 @@ const COMBO_BASE_SCORE = 50
 const MAX_MOVE_RESETS = 15
 const LOCK_DELAY = 30
 
-var GAME_OVER_PIECE_STYLE = defStyle.Background(tcell.ColorBlack).Foreground(tcell.ColorGray)
+var GAME_OVER_PIECE_STYLE = defStyle.Background(tcell.ColorBlack).
+	Foreground(tcell.ColorGray)
 
 var COMBO_COUNTS = []int{
 	0, 0,

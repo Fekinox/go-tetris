@@ -65,7 +65,10 @@ func (rvs *ReplayViewerScene) Update() {
 
 	if rvs.actionPointer < len(rvs.replayData.Actions) &&
 		rvs.es.frameCount == rvs.replayData.Actions[rvs.actionPointer].Frame {
-		rvs.objective.HandleAction(rvs.replayData.Actions[rvs.actionPointer].Action, rvs.es)
+		rvs.objective.HandleAction(
+			rvs.replayData.Actions[rvs.actionPointer].Action,
+			rvs.es,
+		)
 		rvs.actionPointer++
 	}
 
@@ -102,7 +105,10 @@ func (rvs *ReplayViewerScene) Draw(sw, sh int, rr Area, lag float64) {
 	}
 }
 
-func (rvs *ReplayViewerScene) DrawProgressBar(anchorX, anchorY int, value float64) {
+func (rvs *ReplayViewerScene) DrawProgressBar(
+	anchorX, anchorY int,
+	value float64,
+) {
 	for i := 0; i < BOARD_WIDTH; i++ {
 		intensity := value*10 - float64(i)
 		intIntensity := max(

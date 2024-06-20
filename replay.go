@@ -51,7 +51,11 @@ func (rd *ReplayData) Encode(w io.Writer) error {
 			return err
 		}
 	}
-	err = binary.Write(base64Encoder, binary.LittleEndian, int64(len(rd.Actions)))
+	err = binary.Write(
+		base64Encoder,
+		binary.LittleEndian,
+		int64(len(rd.Actions)),
+	)
 	if err != nil {
 		return err
 	}

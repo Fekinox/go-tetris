@@ -117,8 +117,20 @@ func BorderBox(area Area, style tcell.Style) {
 	// Draw corners
 	Screen.SetContent(area.X, area.Y, tcell.RuneULCorner, nil, style)
 	Screen.SetContent(area.X+area.Width, area.Y, tcell.RuneURCorner, nil, style)
-	Screen.SetContent(area.X, area.Y+area.Height, tcell.RuneLLCorner, nil, style)
-	Screen.SetContent(area.X+area.Width, area.Y+area.Height, tcell.RuneLRCorner, nil, style)
+	Screen.SetContent(
+		area.X,
+		area.Y+area.Height,
+		tcell.RuneLLCorner,
+		nil,
+		style,
+	)
+	Screen.SetContent(
+		area.X+area.Width,
+		area.Y+area.Height,
+		tcell.RuneLRCorner,
+		nil,
+		style,
+	)
 
 	// Draw top and bottom edges
 	for xx := area.X + 1; xx < area.X+area.Width; xx++ {

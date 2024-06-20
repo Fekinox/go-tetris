@@ -293,7 +293,8 @@ var PieceColors = []tcell.Color{
 }
 
 func SolidPieceStyle(pieceIdx int) tcell.Style {
-	return defStyle.Foreground(tcell.ColorBlack).Background(PieceColors[pieceIdx])
+	return defStyle.Foreground(tcell.ColorBlack).
+		Background(PieceColors[pieceIdx])
 }
 
 func LightPieceStyle(pieceIdx int) tcell.Style {
