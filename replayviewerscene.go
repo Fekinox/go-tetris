@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/gdamore/tcell/v2"
@@ -65,7 +66,7 @@ func (rvs *ReplayViewerScene) Update() {
 
 	if rvs.actionPointer < len(rvs.replayData.Actions) &&
 		rvs.es.frameCount == rvs.replayData.Actions[rvs.actionPointer].Frame {
-		rvs.es.HandleAction(rvs.replayData.Actions[rvs.actionPointer].Action)
+		rvs.objective.HandleAction(rvs.replayData.Actions[rvs.actionPointer].Action, rvs.es)
 		rvs.actionPointer++
 	}
 

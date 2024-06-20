@@ -187,7 +187,7 @@ func (a *App) OpenLineClearScene() {
 		},
 		LineClear,
 		&LineClearSettings{
-			Lines: 4,
+			Lines: 40,
 		},
 	)
 

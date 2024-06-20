@@ -15,9 +15,10 @@ func (lcs *LineClearSettings) Init(es *TetrisField) Objective {
 }
 
 func (lco *LineClearObjective) Update(es *TetrisField) {
-	if !es.gameOver {
-		es.Update()
+	if es.gameOver {
+		return
 	}
+	es.Update()
 }
 
 func (lco *LineClearObjective) HandleAction(act Action, es *TetrisField) {
