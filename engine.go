@@ -50,6 +50,7 @@ func IsDigitRune(ev *tcell.EventKey) bool {
 }
 
 type LineClearHandler func(garbage, nonGarbage int)
+type GameOverHandler func(failed bool, reason string)
 
 type TetrisField struct {
 	settings GlobalTetrisSettings
@@ -100,6 +101,7 @@ type TetrisField struct {
 	garbageQueue []int
 
 	lineClearHandlers []LineClearHandler
+	gameOverHandlers []GameOverHandler
 
 	gameOver          bool
 	failed			bool
@@ -155,7 +157,9 @@ func (es *TetrisField) StartGame(seed int64) {
 	es.garbageQueue = make([]int, 0, 20)
 
 	es.maxStackHeight = 0
+
 	es.lineClearHandlers = make([]LineClearHandler, 0)
+	es.gameOverHandlers = make([]GameOverHandler, 0)
 
 	es.FillNextPieces()
 
@@ -1182,20 +1186,36 @@ func (es *TetrisField) AddLineClearHandler(handler LineClearHandler) {
 	es.lineClearHandlers = append(es.lineClearHandlers, handler)
 }
 
+func (es *TetrisField) AddGameOverHandler(handler GameOverHandler) {
+	es.gameOverHandlers = append(es.gameOverHandlers, handler)
+}
+
 func (es *TetrisField) GarbageOut() {
 	es.gameOver = true
 	es.failed = true
 	es.gameOverReason = "Garbage overflowed the game board"
+
+	for _, handle := range es.gameOverHandlers {
+		handle(es.failed, es.gameOverReason)
+	}
 }
 
 func (es *TetrisField) BlockOut() {
 	es.gameOver = true
 	es.failed = true
 	es.gameOverReason = "Could not place next piece"
+
+	for _, handle := range es.gameOverHandlers {
+		handle(es.failed, es.gameOverReason)
+	}
 }
 
 func (es *TetrisField) ObjectiveComplete(text string) {
 	es.gameOver = true
 	es.failed = false
 	es.gameOverReason = text
+
+	for _, handle := range es.gameOverHandlers {
+		handle(es.failed, es.gameOverReason)
+	}
 }

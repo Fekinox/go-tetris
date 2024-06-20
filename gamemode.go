@@ -13,6 +13,8 @@ type Objective interface {
 	HandleAction(act Action, es *TetrisField)
 }
 
+type ObjectiveID int
+
 type ObjectiveSettings interface {
 	Init(es *TetrisField) Objective
 }

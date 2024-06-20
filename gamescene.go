@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"math"
+	"os"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -24,6 +26,8 @@ type GameScene struct {
 
 	countdownTimer float64
 	gameStarted bool
+
+	actions []ReplayAction
 }
 
 func (gs *GameScene) Init(
@@ -40,6 +44,12 @@ func (gs *GameScene) Init(
 
 	gs.countdownTimer = COUNTDOWN_DURATION_SECS
 	gs.gameStarted = false
+
+	gs.actions = make([]ReplayAction, 0)
+
+	gs.es.AddGameOverHandler(func(failed bool, reason string) {
+		gs.OnGameOver(failed, reason)
+	})
 }
 
 func (gs *GameScene) HandleEvent(ev tcell.Event) {
@@ -56,9 +66,18 @@ func (gs *GameScene) HandleAction(act Action) {
 
 		gs.countdownTimer = COUNTDOWN_DURATION_SECS
 		gs.gameStarted = false
+
+		gs.actions = make([]ReplayAction, 0)
+		gs.es.AddGameOverHandler(func(failed bool, reason string) {
+			gs.OnGameOver(failed, reason)
+		})
 	default:
 		if gs.gameStarted {
 			gs.objective.HandleAction(act, gs.es)
+			gs.actions = append(gs.actions, ReplayAction{
+				Action: act,
+				Frame: gs.es.frameCount,
+			})
 		}
 	}
 }
@@ -75,6 +94,22 @@ func (gs *GameScene) Update() {
 		gs.es.gameStarted = true
 		gs.es.GetRandomPiece()
 	}
+}
+
+func (gs *GameScene) OnGameOver(failed bool, reason string) {
+	replayData := ReplayData{
+		Seed: gs.seed,
+		TetrisSettings: gs.globalSettings,
+		ObjectiveSettings: gs.objectiveSettings,
+		Actions: gs.actions,
+	}
+
+	f, err := os.Create(fmt.Sprintf("replay-%v", time.Now()))
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	replayData.Encode(f)
 }
 
 func (gs *GameScene) Draw(sw, sh int, rr Area, lag float64) {
