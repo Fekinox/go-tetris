@@ -16,7 +16,13 @@ type ReplayData struct {
 	Actions           []ReplayAction
 }
 
-func (rd *ReplayData) EncodeUncompressed(w io.Writer) error {
+type ReplayEncoder func(rd *ReplayData, w io.Writer) error
+type ReplayDecoder func(r io.Reader) (*ReplayData, error)
+
+var StdEncoder ReplayEncoder = EncodeCompressed
+var StdDecoder ReplayDecoder = DecodeCompressed
+
+func EncodeUncompressed(rd *ReplayData, w io.Writer) error {
 	base64Encoder := base64.NewEncoder(base64.StdEncoding, w)
 
 	err := rd.Encode(base64Encoder)
@@ -32,18 +38,19 @@ func (rd *ReplayData) EncodeUncompressed(w io.Writer) error {
 	return nil
 }
 
-func (rd *ReplayData) DecodeUncompressed(r io.Reader) error {
+func DecodeUncompressed(r io.Reader) (*ReplayData, error) {
+	rd := ReplayData{}
 	base64Decoder := base64.NewDecoder(base64.StdEncoding, r)
 
 	err := rd.Decode(base64Decoder)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &rd, nil
 }
 
-func (rd *ReplayData) EncodeCompressed(w io.Writer) error {
+func EncodeCompressed(rd *ReplayData, w io.Writer) error {
 	base64Encoder := base64.NewEncoder(base64.StdEncoding, w)
 	gzipEncoder := gzip.NewWriter(base64Encoder)
 
@@ -65,25 +72,26 @@ func (rd *ReplayData) EncodeCompressed(w io.Writer) error {
 	return nil
 }
 
-func (rd *ReplayData) DecodeCompressed(r io.Reader) error {
+func DecodeCompressed(r io.Reader) (*ReplayData, error) {
+	rd := ReplayData{}
 	var err error
 	base64Decoder := base64.NewDecoder(base64.StdEncoding, r)
 	gzipDecoder, err := gzip.NewReader(base64Decoder)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = rd.Decode(gzipDecoder)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	err = gzipDecoder.Close()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return &rd, nil
 }
 
 func (rd *ReplayData) Encode(w io.Writer) error {

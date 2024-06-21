@@ -89,17 +89,18 @@ func (gs *GameScene) HandleAction(act Action) {
 }
 
 func (gs *GameScene) Update() {
-	if gs.gameStarted {
-		gs.objective.Update(gs.es)
+	if !gs.gameStarted {
+		gs.countdownTimer -= UPDATE_TICK_RATE_MS / 1000.0
+		if gs.countdownTimer < 0 {
+			gs.gameStarted = true
+			gs.es.gameStarted = true
+			gs.es.GetRandomPiece()
+		}
+
 		return
 	}
 
-	gs.countdownTimer -= UPDATE_TICK_RATE_MS / 1000.0
-	if gs.countdownTimer < 0 {
-		gs.gameStarted = true
-		gs.es.gameStarted = true
-		gs.es.GetRandomPiece()
-	}
+	gs.objective.Update(gs.es)
 }
 
 func (gs *GameScene) OnGameOver(failed bool, reason string) {
@@ -121,7 +122,7 @@ func (gs *GameScene) OnGameOver(failed bool, reason string) {
 		panic(err)
 	}
 	defer file.Close()
-	err = replayData.EncodeCompressed(file)
+	err = StdEncoder(&replayData, file)
 	if err != nil {
 		panic(err)
 	}

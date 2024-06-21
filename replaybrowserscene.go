@@ -70,14 +70,13 @@ func (ms *ReplayBrowserScene) ConfirmAction() {
 		panic(err)
 	}
 	defer file.Close()
-	replayData := ReplayData{}
-	err = replayData.DecodeCompressed(file)
+	replayData, err := StdDecoder(file)
 
 	if err != nil {
 		panic(err)
 	}
 
-	ms.app.OpenReplayScene(replayData)
+	ms.app.OpenReplayScene(*replayData)
 }
 
 func (ms *ReplayBrowserScene) Draw(sw, sh int, rr Area, lag float64) {
