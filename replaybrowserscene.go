@@ -71,7 +71,7 @@ func (ms *ReplayBrowserScene) ConfirmAction() {
 	}
 	defer file.Close()
 	replayData := ReplayData{}
-	err = replayData.Decode(file)
+	err = replayData.DecodeCompressed(file)
 
 	if err != nil {
 		panic(err)

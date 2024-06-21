@@ -121,7 +121,7 @@ func (gs *GameScene) OnGameOver(failed bool, reason string) {
 		panic(err)
 	}
 	defer file.Close()
-	err = replayData.Encode(file)
+	err = replayData.EncodeCompressed(file)
 	if err != nil {
 		panic(err)
 	}

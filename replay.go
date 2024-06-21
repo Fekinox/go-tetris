@@ -1,6 +1,7 @@
 package main
 
 import (
+	"compress/gzip"
 	"encoding/base64"
 	"encoding/binary"
 	"errors"
@@ -15,47 +16,113 @@ type ReplayData struct {
 	Actions           []ReplayAction
 }
 
-func (rd *ReplayData) Encode(w io.Writer) error {
+func (rd *ReplayData) EncodeUncompressed(w io.Writer) error {
 	base64Encoder := base64.NewEncoder(base64.StdEncoding, w)
 
-	writer := base64Encoder
+	err := rd.Encode(base64Encoder)
+	if err != nil {
+		return err
+	}
 
-	err := binary.Write(writer, binary.LittleEndian, rd.Seed)
+	err = base64Encoder.Close()
 	if err != nil {
 		return err
 	}
-	err = binary.Write(writer, binary.LittleEndian, rd.TetrisSettings)
+
+	return nil
+}
+
+func (rd *ReplayData) DecodeUncompressed(r io.Reader) error {
+	base64Decoder := base64.NewDecoder(base64.StdEncoding, r)
+
+	err := rd.Decode(base64Decoder)
 	if err != nil {
 		return err
 	}
-	err = binary.Write(writer, binary.LittleEndian, rd.ObjectiveID)
+
+	return nil
+}
+
+func (rd *ReplayData) EncodeCompressed(w io.Writer) error {
+	base64Encoder := base64.NewEncoder(base64.StdEncoding, w)
+	gzipEncoder := gzip.NewWriter(base64Encoder)
+
+	err := rd.Encode(gzipEncoder)
+	if err != nil {
+		return err
+	}
+
+	err = gzipEncoder.Close()
+	if err != nil {
+		return err
+	}
+
+	err = base64Encoder.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (rd *ReplayData) DecodeCompressed(r io.Reader) error {
+	var err error
+	base64Decoder := base64.NewDecoder(base64.StdEncoding, r)
+	gzipDecoder, err := gzip.NewReader(base64Decoder)
+	if err != nil {
+		return err
+	}
+
+	err = rd.Decode(gzipDecoder)
+	if err != nil {
+		return err
+	}
+
+	err = gzipDecoder.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (rd *ReplayData) Encode(w io.Writer) error {
+	err := binary.Write(w, binary.LittleEndian, rd.Seed)
+	if err != nil {
+		return err
+	}
+	err = binary.Write(w, binary.LittleEndian, rd.TetrisSettings)
+	if err != nil {
+		return err
+	}
+	err = binary.Write(w, binary.LittleEndian, rd.ObjectiveID)
 	if err != nil {
 		return err
 	}
 	switch set := rd.ObjectiveSettings.(type) {
 	case *LineClearSettings:
-		err = binary.Write(writer, binary.LittleEndian, set)
+		err = binary.Write(w, binary.LittleEndian, set)
 		if err != nil {
 			return err
 		}
 	case *SurvivalSettings:
-		err = binary.Write(writer, binary.LittleEndian, set)
+		err = binary.Write(w, binary.LittleEndian, set)
 		if err != nil {
 			return err
 		}
 	case *EndlessSettings:
-		err = binary.Write(writer, binary.LittleEndian, set)
+		err = binary.Write(w, binary.LittleEndian, set)
 		if err != nil {
 			return err
 		}
 	case *CheeseSettings:
-		err = binary.Write(writer, binary.LittleEndian, set)
+		err = binary.Write(w, binary.LittleEndian, set)
 		if err != nil {
 			return err
 		}
 	}
 	err = binary.Write(
-		writer,
+		w,
 		binary.LittleEndian,
 		int64(len(rd.Actions)),
 	)
@@ -64,31 +131,27 @@ func (rd *ReplayData) Encode(w io.Writer) error {
 	}
 
 	for i := 0; i < len(rd.Actions); i++ {
-		err = binary.Write(writer, binary.LittleEndian, rd.Actions[i])
+		err = binary.Write(w, binary.LittleEndian, rd.Actions[i])
 		if err != nil {
 			return err
 		}
 	}
-	return writer.Close()
+	return nil
 }
 
 func (rd *ReplayData) Decode(r io.Reader) error {
 	var err error
-
-	base64Decoder := base64.NewDecoder(base64.StdEncoding, r)
-	reader := base64Decoder
-
-	err = binary.Read(reader, binary.LittleEndian, &rd.Seed)
+	err = binary.Read(r, binary.LittleEndian, &rd.Seed)
 	if err != nil {
 		return err
 	}
 
-	err = binary.Read(reader, binary.LittleEndian, &rd.TetrisSettings)
+	err = binary.Read(r, binary.LittleEndian, &rd.TetrisSettings)
 	if err != nil {
 		return err
 	}
 
-	err = binary.Read(reader, binary.LittleEndian, &rd.ObjectiveID)
+	err = binary.Read(r, binary.LittleEndian, &rd.ObjectiveID)
 	if err != nil {
 		return err
 	}
@@ -96,28 +159,28 @@ func (rd *ReplayData) Decode(r io.Reader) error {
 	switch rd.ObjectiveID {
 	case LineClear:
 		var lineclear LineClearSettings
-		err = binary.Read(reader, binary.LittleEndian, &lineclear)
+		err = binary.Read(r, binary.LittleEndian, &lineclear)
 		if err != nil {
 			return err
 		}
 		rd.ObjectiveSettings = &lineclear
 	case Survival:
 		var survival SurvivalSettings
-		err = binary.Read(reader, binary.LittleEndian, &survival)
+		err = binary.Read(r, binary.LittleEndian, &survival)
 		if err != nil {
 			return err
 		}
 		rd.ObjectiveSettings = &survival
 	case Endless:
 		var endless EndlessSettings
-		err = binary.Read(reader, binary.LittleEndian, &endless)
+		err = binary.Read(r, binary.LittleEndian, &endless)
 		if err != nil {
 			return err
 		}
 		rd.ObjectiveSettings = &endless
 	case Cheese:
 		var cheese CheeseSettings
-		err = binary.Read(reader, binary.LittleEndian, &cheese)
+		err = binary.Read(r, binary.LittleEndian, &cheese)
 		if err != nil {
 			return err
 		}
@@ -127,7 +190,7 @@ func (rd *ReplayData) Decode(r io.Reader) error {
 	}
 
 	var numActions int64
-	err = binary.Read(reader, binary.LittleEndian, &numActions)
+	err = binary.Read(r, binary.LittleEndian, &numActions)
 	if err != nil {
 		return err
 	}
@@ -135,7 +198,7 @@ func (rd *ReplayData) Decode(r io.Reader) error {
 	rd.Actions = make([]ReplayAction, numActions)
 	var i int64
 	for i = 0; i < numActions; i++ {
-		err = binary.Read(reader, binary.LittleEndian, &rd.Actions[i])
+		err = binary.Read(r, binary.LittleEndian, &rd.Actions[i])
 		if err != nil {
 			return err
 		}
