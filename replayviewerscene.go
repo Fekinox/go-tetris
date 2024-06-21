@@ -63,7 +63,7 @@ func (rvs *ReplayViewerScene) Update() {
 		return
 	}
 
-	if rvs.actionPointer < len(rvs.replayData.Actions) &&
+	for rvs.actionPointer < len(rvs.replayData.Actions) &&
 		rvs.es.frameCount == rvs.replayData.Actions[rvs.actionPointer].Frame {
 		rvs.objective.HandleAction(
 			rvs.replayData.Actions[rvs.actionPointer].Action,
