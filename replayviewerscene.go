@@ -6,6 +6,8 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
+// FIXME: Need to thoroughly test that replays are in fact deterministic
+// and model exactly what happens in the game
 type ReplayViewerScene struct {
 	app *App
 	es  *TetrisField
