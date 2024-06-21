@@ -141,5 +141,5 @@ func (rd *ReplayData) Decode(r io.Reader) error {
 		}
 	}
 
-	return reader.Close()
+	return nil
 }
