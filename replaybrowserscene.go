@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
+	"slices"
+	"strings"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -34,6 +36,9 @@ func (ms *ReplayBrowserScene) Init(app *App) {
 		}
 
 		ms.replayFileNames = names
+		slices.SortFunc(ms.replayFileNames, func(a string, b string) int {
+			return strings.Compare(b, a)
+		})
 		ms.loaded = true
 	}()
 }
