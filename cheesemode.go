@@ -11,14 +11,14 @@ func (cs *CheeseSettings) Init(es *TetrisField) Objective {
 		CurrentGarbage: cs.Garbage,
 	}
 
-	var i int64
-	for i = 0; i < co.CurrentGarbage && i < MAX_CHEESE_GARBAGE_LINES; i++ {
-		es.AddGarbage(1)
+	for i := int64(0); i < min(co.CurrentGarbage, MAX_CHEESE_GARBAGE_LINES); i++ {
+		es.AddGarbage(1)	
 	}
 
 	es.AddLineClearHandler(func(garbage, nonGarbage int) {
 		co.OnLineClear(garbage, es)
 	})
+
 
 	return co
 }

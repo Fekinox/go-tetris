@@ -154,7 +154,7 @@ func (es *TetrisField) StartGame(seed int64) {
 	es.failed = false
 	es.gameOverReason = ""
 
-	es.garbageRng = rand.New(rand.NewSource(seed))
+	es.garbageRng = rand.New(rand.NewSource(seed+1))
 	es.garbageQueue = make([]int, 0, 20)
 
 	es.maxStackHeight = 0
@@ -881,23 +881,25 @@ func (es *TetrisField) AddGarbage(count int) {
 		}
 	}
 
-	for h := 0; h < count; h++ {
-		if es.CheckCollision(
-			es.cpGrid,
-			es.cpX,
-			es.cpY-count+1+h,
-		) {
-			es.cpY = es.cpY - count + h
+	if es.gameStarted {
+		for h := 0; h < count; h++ {
+			if es.CheckCollision(
+				es.cpGrid,
+				es.cpX,
+				es.cpY-count+1+h,
+			) {
+				es.cpY = es.cpY - count + h
+			}
 		}
+
+		es.SetHardDropHeight()
+
+		if es.shiftMode {
+			es.SetSnapPositions()
+		}
+
+		es.SetAirborne()
 	}
-
-	es.SetHardDropHeight()
-
-	if es.shiftMode {
-		es.SetSnapPositions()
-	}
-
-	es.SetAirborne()
 
 	// Check for game over
 	maxHeight := 0
