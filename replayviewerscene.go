@@ -69,21 +69,6 @@ func (rvs *ReplayViewerScene) Update() {
 	for rvs.actionPointer < len(rvs.replayData.Actions) &&
 		rvs.es.frameCount == rvs.replayData.Actions[rvs.actionPointer].Frame {
 		act := rvs.replayData.Actions[rvs.actionPointer]
-		if rvs.es.cpX != int(act.CurX) ||
-			rvs.es.cpY != int(act.CurY) ||
-			rvs.es.cpRot != int(act.CurRot) {
-			panic(fmt.Sprintf(
-				"replay discrepancy on frame %v, action %v (real: %v %v %v, exp: %v %v %v",
-				rvs.es.frameCount,
-				rvs.actionPointer,
-				rvs.es.cpX,
-				rvs.es.cpY,
-				rvs.es.cpRot,
-				act.CurX,
-				act.CurY,
-				act.CurRot,
-			))
-		}
 		rvs.objective.HandleAction(act.Action, rvs.es)
 		rvs.actionPointer++
 	}

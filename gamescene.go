@@ -83,9 +83,6 @@ func (gs *GameScene) HandleAction(act Action) {
 			gs.actions = append(gs.actions, ReplayAction{
 				Action: act,
 				Frame:  gs.es.frameCount,
-				CurX:   int16(gs.es.cpX),
-				CurY:   int16(gs.es.cpY),
-				CurRot: int8(gs.es.cpRot),
 			})
 			gs.objective.HandleAction(act, gs.es)
 		}

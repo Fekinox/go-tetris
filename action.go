@@ -37,9 +37,6 @@ var ActionNames = []string{
 type ReplayAction struct {
 	Action Action
 	Frame  int64
-	CurX   int16
-	CurY   int16
-	CurRot int8
 }
 
 func (a Action) ToString() string {
