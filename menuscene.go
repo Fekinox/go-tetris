@@ -33,6 +33,8 @@ func (ms *MenuScene) HandleAction(act Action) {
 		ms.menuFocus = min(len(MENU_OPTIONS), ms.menuFocus+1)
 	case MenuConfirm:
 		ms.ConfirmAction()
+	case Quit:
+		ms.app.WillQuit = true
 	}
 }
 
