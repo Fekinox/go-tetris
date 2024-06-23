@@ -84,22 +84,6 @@ func (rvs *ReplayViewerScene) Draw(sw, sh int, rr Area, lag float64) {
 	rvs.es.Draw(sw, sh, playingField, lag)
 	rvs.es.DrawStats(rr, anchorX, anchorY)
 
-	SetString(anchorX, anchorY+2,
-		fmt.Sprintf("%v/%v",
-			rvs.actionPointer,
-			len(rvs.replayData.Actions)),
-		defStyle)
-
-	if rvs.actionPointer < len(rvs.replayData.Actions) {
-		SetString(anchorX, anchorY+3,
-			fmt.Sprintf("%v %v",
-				rvs.replayData.Actions[rvs.actionPointer].Action.ToString(),
-				rvs.replayData.Actions[rvs.actionPointer].Frame,
-			),
-			defStyle,
-		)
-	}
-
 	if !rvs.gameStarted {
 		textAnchorX := playingField.X + BOARD_WIDTH/2
 		textAnchorY := playingField.Y + 4
