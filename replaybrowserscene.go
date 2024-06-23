@@ -90,7 +90,7 @@ func (ms *ReplayBrowserScene) ConfirmAction() {
 	)
 	ms.app.Logger.Printf("Number of actions: %v\n", len(replayData.Actions))
 
-	ms.app.OpenReplayScene(*replayData)
+	ms.app.OpenReplayViewerScene(*replayData)
 }
 
 func (ms *ReplayBrowserScene) Draw(sw, sh int, rr Area, lag float64) {

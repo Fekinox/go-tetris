@@ -52,7 +52,7 @@ func (ms *MenuScene) ConfirmAction() {
 	case 3:
 		ms.app.OpenCheeseScene()
 	case 4:
-		ms.app.OpenReplayMenuScene()
+		ms.app.OpenReplayBrowserScene()
 	case 5:
 		break
 	case 6:

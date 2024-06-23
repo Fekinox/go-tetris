@@ -257,13 +257,13 @@ func (a *App) OpenCheeseScene() {
 	a.CurrentScene = &gameScene
 }
 
-func (a *App) OpenReplayMenuScene() {
+func (a *App) OpenReplayBrowserScene() {
 	menuScene := ReplayBrowserScene{}
 	menuScene.Init(a)
 	a.CurrentScene = &menuScene
 }
 
-func (a *App) OpenReplayScene(data ReplayData) {
+func (a *App) OpenReplayViewerScene(data ReplayData) {
 	replayScene := ReplayViewerScene{}
 	replayScene.Init(
 		a,
