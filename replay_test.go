@@ -60,13 +60,13 @@ func FuzzReplaysCompressed(f *testing.F) {
 				len(newRepData.Actions),
 			)
 		}
-		
+
 		for i := 0; i < len(repData.Actions); i++ {
 			oldAct := repData.Actions[i]
 			newAct := newRepData.Actions[i]
 			if oldAct.Frame != newAct.Frame || oldAct.Action != newAct.Action {
 				t.Fatalf("Action discrepancy (old: %v, new: %v)", oldAct,
-				newAct)
+					newAct)
 			}
 		}
 	})

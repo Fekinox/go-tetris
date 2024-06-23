@@ -18,7 +18,30 @@ const (
 	MenuConfirm
 )
 
+var ActionNames = []string{
+	"MoveUp",
+	"MoveDown",
+	"MoveLeft",
+	"MoveRight",
+	"HardDrop",
+	"RotateCW",
+	"RotateCCW",
+	"SwapHoldPiece",
+	"ToggleSuper",
+	"Quit",
+	"Reset",
+	"Pause",
+	"MenuConfirm",
+}
+
 type ReplayAction struct {
 	Action Action
 	Frame  int64
+	CurX   int16
+	CurY   int16
+	CurRot int8
+}
+
+func (a Action) ToString() string {
+	return ActionNames[a]
 }

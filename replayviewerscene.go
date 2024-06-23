@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/gdamore/tcell/v2"
@@ -67,10 +68,23 @@ func (rvs *ReplayViewerScene) Update() {
 
 	for rvs.actionPointer < len(rvs.replayData.Actions) &&
 		rvs.es.frameCount == rvs.replayData.Actions[rvs.actionPointer].Frame {
-		rvs.objective.HandleAction(
-			rvs.replayData.Actions[rvs.actionPointer].Action,
-			rvs.es,
-		)
+		act := rvs.replayData.Actions[rvs.actionPointer]
+		if rvs.es.cpX != int(act.CurX) ||
+			rvs.es.cpY != int(act.CurY) ||
+			rvs.es.cpRot != int(act.CurRot) {
+			panic(fmt.Sprintf(
+				"replay discrepancy on frame %v, action %v (real: %v %v %v, exp: %v %v %v",
+				rvs.es.frameCount,
+				rvs.actionPointer,
+				rvs.es.cpX,
+				rvs.es.cpY,
+				rvs.es.cpRot,
+				act.CurX,
+				act.CurY,
+				act.CurRot,
+			))
+		}
+		rvs.objective.HandleAction(act.Action, rvs.es)
 		rvs.actionPointer++
 	}
 
@@ -84,6 +98,22 @@ func (rvs *ReplayViewerScene) Draw(sw, sh int, rr Area, lag float64) {
 
 	rvs.es.Draw(sw, sh, playingField, lag)
 	rvs.es.DrawStats(rr, anchorX, anchorY)
+
+	SetString(anchorX, anchorY+2,
+		fmt.Sprintf("%v/%v",
+			rvs.actionPointer,
+			len(rvs.replayData.Actions)),
+		defStyle)
+
+	if rvs.actionPointer < len(rvs.replayData.Actions) {
+		SetString(anchorX, anchorY+3,
+			fmt.Sprintf("%v %v",
+				rvs.replayData.Actions[rvs.actionPointer].Action.ToString(),
+				rvs.replayData.Actions[rvs.actionPointer].Frame,
+			),
+			defStyle,
+		)
+	}
 
 	if !rvs.gameStarted {
 		textAnchorX := playingField.X + BOARD_WIDTH/2

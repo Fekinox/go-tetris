@@ -5,19 +5,19 @@ import "math"
 type TetrisState struct {
 	Grid Grid[int]
 
-	CpIdx int
-	CpX int
-	CpY int
-	CpRot int
-	CpGrid int
-	NextPieces []int
-	HoldPiece int
+	CpIdx         int
+	CpX           int
+	CpY           int
+	CpRot         int
+	CpGrid        int
+	NextPieces    []int
+	HoldPiece     int
 	UsedHoldPiece bool
-	Airborne bool
+	Airborne      bool
 
-	LeftSnap int
+	LeftSnap  int
 	RightSnap int
-	HardDrop int
+	HardDrop  int
 
 	ClearedLines int
 }
@@ -26,7 +26,7 @@ type Heuristic func(ts TetrisState) int
 
 type NextState struct {
 	Actions []Action
-	State TetrisState
+	State   TetrisState
 }
 
 // AI heuristics inspired by https://github.com/Tetris-Artificial-Intelligence/Tetris-Artificial-Intelligence.github.io
@@ -60,7 +60,7 @@ func BestMove(ts TetrisState, h Heuristic) ([]Action, int) {
 	var bestActions []Action
 	var bestHeuristic int = math.MaxInt
 	for _, ns := range nextStates {
-		_, heuristic := BestMove(ns.State, h)	
+		_, heuristic := BestMove(ns.State, h)
 		if heuristic < bestHeuristic {
 			bestActions = ns.Actions
 			bestHeuristic = heuristic

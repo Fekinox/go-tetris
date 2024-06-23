@@ -43,6 +43,7 @@ func (gs *GameScene) Init(
 	gs.seed = time.Now().UnixNano()
 	gs.es = NewTetrisField(gs.seed, globalSettings)
 
+	gs.globalSettings = globalSettings
 	gs.objectiveID = objectiveID
 	gs.objectiveSettings = objectiveSettings
 	gs.objective = gs.objectiveSettings.Init(gs.es)
@@ -82,6 +83,9 @@ func (gs *GameScene) HandleAction(act Action) {
 			gs.actions = append(gs.actions, ReplayAction{
 				Action: act,
 				Frame:  gs.es.frameCount,
+				CurX:   int16(gs.es.cpX),
+				CurY:   int16(gs.es.cpY),
+				CurRot: int8(gs.es.cpRot),
 			})
 			gs.objective.HandleAction(act, gs.es)
 		}

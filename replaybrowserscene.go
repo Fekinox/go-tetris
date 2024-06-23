@@ -84,7 +84,10 @@ func (ms *ReplayBrowserScene) ConfirmAction() {
 	ms.app.Logger.Printf("Seed: %v\n", replayData.Seed)
 	ms.app.Logger.Printf("Settings: %v\n", replayData.TetrisSettings)
 	ms.app.Logger.Printf("ObjectiveID: %v\n", replayData.ObjectiveID)
-	ms.app.Logger.Printf("ObjectiveSettings: %v\n", replayData.ObjectiveSettings)
+	ms.app.Logger.Printf(
+		"ObjectiveSettings: %v\n",
+		replayData.ObjectiveSettings,
+	)
 	ms.app.Logger.Printf("Number of actions: %v\n", len(replayData.Actions))
 
 	ms.app.OpenReplayScene(*replayData)

@@ -154,7 +154,7 @@ func (es *TetrisField) StartGame(seed int64) {
 	es.failed = false
 	es.gameOverReason = ""
 
-	es.garbageRng = rand.New(rand.NewSource(seed+1))
+	es.garbageRng = rand.New(rand.NewSource(seed + 1))
 	es.garbageQueue = make([]int, 0, 20)
 
 	es.maxStackHeight = 0
@@ -170,7 +170,9 @@ func (es *TetrisField) StartGame(seed int64) {
 func (es *TetrisField) HandleAction(act Action) {
 	if !es.gameOver {
 		switch act {
-		case MoveUp | RotateCW:
+		case MoveUp:
+			es.Rotate(1)
+		case RotateCW:
 			es.Rotate(1)
 		case RotateCCW:
 			es.Rotate(-1)
@@ -195,8 +197,6 @@ func (es *TetrisField) Update() {
 		return
 	}
 
-	es.frameCount++
-
 	es.dashParticles.Update()
 
 	if es.airborne {
@@ -210,10 +210,10 @@ func (es *TetrisField) Update() {
 		es.lockTimer -= 1
 		if es.lockTimer <= 0 {
 			es.LockPiece()
-			return
 		}
 	}
 
+	es.frameCount++
 }
 
 func (es *TetrisField) Draw(sw, sh int, rr Area, lag float64) {

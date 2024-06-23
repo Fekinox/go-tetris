@@ -8,6 +8,8 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
+const TIME_SCALE float64 = 1
+
 type App struct {
 	CurrentScene Scene
 	NextScene    Scene
@@ -22,7 +24,7 @@ type App struct {
 	runeActionMap map[rune]Action
 
 	LogFileHandle *os.File
-	Logger *log.Logger
+	Logger        *log.Logger
 }
 
 func NewApp() *App {
@@ -99,7 +101,7 @@ func (a *App) Loop() {
 	for {
 		currTime := time.Now()
 		elapsed := float64(currTime.Sub(prevTime).Nanoseconds()) / (1000 * 1000)
-		lag += elapsed * 100
+		lag += elapsed * TIME_SCALE
 		prevTime = currTime
 
 		if a.NextScene != nil {
@@ -137,6 +139,8 @@ func (a *App) Loop() {
 						}
 					}
 					a.CurrentScene.HandleAction(action)
+
+					a.Logger.Printf("action: %v", action.ToString())
 				}
 			default:
 				a.CurrentScene.HandleEvent(ev)
