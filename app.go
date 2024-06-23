@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -19,6 +20,9 @@ type App struct {
 
 	keyActionMap  map[tcell.Key]Action
 	runeActionMap map[rune]Action
+
+	LogFileHandle *os.File
+	Logger *log.Logger
 }
 
 func NewApp() *App {
@@ -69,6 +73,14 @@ func NewApp() *App {
 
 	app.OpenMenuScene()
 
+	// Initialize logger
+	app.LogFileHandle, err = os.Create("logfile")
+	if err != nil {
+		log.Fatalf("%+v", err)
+	}
+
+	app.Logger = log.New(app.LogFileHandle, "", log.Flags())
+
 	return app
 }
 
@@ -87,7 +99,7 @@ func (a *App) Loop() {
 	for {
 		currTime := time.Now()
 		elapsed := float64(currTime.Sub(prevTime).Nanoseconds()) / (1000 * 1000)
-		lag += elapsed
+		lag += elapsed * 100
 		prevTime = currTime
 
 		if a.NextScene != nil {

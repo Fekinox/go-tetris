@@ -112,6 +112,12 @@ func (gs *GameScene) OnGameOver(failed bool, reason string) {
 		Actions:           gs.actions,
 	}
 
+	gs.app.Logger.Printf("Seed: %v\n", gs.seed)
+	gs.app.Logger.Printf("Settings: %v\n", gs.globalSettings)
+	gs.app.Logger.Printf("ObjectiveID: %v\n", gs.objectiveID)
+	gs.app.Logger.Printf("ObjectiveSettings: %v\n", gs.objectiveSettings)
+	gs.app.Logger.Printf("Number of actions: %v\n", len(gs.actions))
+
 	err := os.Mkdir("replays", 0755)
 	if err != nil && !errors.Is(err, fs.ErrExist) {
 		panic(err)
