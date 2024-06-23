@@ -8,7 +8,7 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-const TIME_SCALE float64 = 1
+const TIME_SCALE float64 = 200
 
 type App struct {
 	CurrentScene Scene
