@@ -19,6 +19,8 @@ type ReplayViewerScene struct {
 	gameStarted    bool
 
 	actionPointer int
+
+	stats []Stat
 }
 
 func (rvs *ReplayViewerScene) Init(
@@ -33,6 +35,12 @@ func (rvs *ReplayViewerScene) Init(
 
 	rvs.countdownTimer = COUNTDOWN_DURATION_SECS
 	rvs.gameStarted = false
+
+	rvs.stats = []Stat {
+		CreateElapsedTimeStat(rvs.es),
+		CreatePiecesStat(rvs.es),
+		CreateLinesStat(rvs.es),
+	}
 }
 
 func (rvs *ReplayViewerScene) HandleEvent(ev tcell.Event) {
@@ -81,7 +89,19 @@ func (rvs *ReplayViewerScene) Draw(sw, sh int, rr Area, lag float64) {
 	anchorY := playingField.Bottom() - 2
 
 	rvs.es.Draw(sw, sh, playingField, lag)
-	rvs.es.DrawStats(rr, anchorX, anchorY)
+
+	yOffset := 0
+	for _, stat := range rvs.stats {
+		strings := stat.Compute()
+		SetStringArray(
+			anchorX,
+			anchorY+yOffset - len(strings),
+			defStyle,
+			true,
+			strings...,
+		)
+		yOffset -= len(strings) + 1
+	}
 
 	if !rvs.gameStarted {
 		textAnchorX := playingField.X + BOARD_WIDTH/2

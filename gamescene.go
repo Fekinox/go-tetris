@@ -31,6 +31,8 @@ type GameScene struct {
 	gameStarted    bool
 
 	actions []ReplayAction
+
+	stats []Stat
 }
 
 func (gs *GameScene) Init(
@@ -56,6 +58,12 @@ func (gs *GameScene) Init(
 	gs.es.AddGameOverHandler(func(failed bool, reason string) {
 		gs.OnGameOver(failed, reason)
 	})
+
+	gs.stats = []Stat {
+		CreateElapsedTimeStat(gs.es),
+		CreatePiecesStat(gs.es),
+		CreateLinesStat(gs.es),
+	}
 }
 
 func (gs *GameScene) HandleEvent(ev tcell.Event) {
@@ -141,7 +149,19 @@ func (gs *GameScene) Draw(sw, sh int, rr Area, lag float64) {
 	anchorY := playingField.Bottom() - 2
 
 	gs.es.Draw(sw, sh, playingField, lag)
-	gs.es.DrawStats(rr, anchorX, anchorY)
+
+	yOffset := 0
+	for _, stat := range gs.stats {
+		strings := stat.Compute()
+		SetStringArray(
+			anchorX,
+			anchorY+yOffset - len(strings),
+			defStyle,
+			true,
+			strings...,
+		)
+		yOffset -= len(strings) + 1
+	}
 
 	if !gs.gameStarted {
 		textAnchorX := playingField.X + BOARD_WIDTH/2
