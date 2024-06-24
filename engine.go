@@ -701,6 +701,7 @@ func (es *TetrisField) SoftDrop() {
 		es.shiftMode = false
 		es.gravityTimer = es.fallRate
 		es.SetAirborne()
+		es.app.AudioEngine.PlaySound("dash")
 
 		return
 	}
@@ -714,6 +715,7 @@ func (es *TetrisField) SoftDrop() {
 	es.score += 1
 	es.gravityTimer = es.fallRate
 	es.SetAirborne()
+	es.app.AudioEngine.PlaySound("move")
 }
 
 func (es *TetrisField) GravityDrop() {
