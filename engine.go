@@ -54,6 +54,7 @@ type LineClearHandler func(garbage, nonGarbage int)
 type GameOverHandler func(failed bool, reason string)
 
 type TetrisField struct {
+	app *App
 	settings GlobalTetrisSettings
 
 	LastRenderDuration float64
@@ -115,8 +116,9 @@ type TetrisField struct {
 	maxStackHeight int
 }
 
-func NewTetrisField(seed int64, settings GlobalTetrisSettings) *TetrisField {
+func NewTetrisField(seed int64, settings GlobalTetrisSettings, app *App) *TetrisField {
 	es := TetrisField{
+		app: app,
 		settings:           settings,
 		LastUpdateDuration: UPDATE_TICK_RATE_MS,
 
@@ -570,6 +572,8 @@ func (es *TetrisField) ToggleShiftMode() {
 }
 
 func (es *TetrisField) Rotate(offset int) {
+	es.app.AudioEngine.PlaySound("move")
+
 	newRotation := (es.cpRot + offset) % 4
 	newRotation = (newRotation + 4) % 4
 
@@ -653,6 +657,8 @@ func (es *TetrisField) MovePiece(dx int) {
 		es.shiftMode = false
 		es.SetHardDropHeight()
 		es.SetAirborne()
+
+		es.app.AudioEngine.PlaySound("dash")
 		return
 	}
 	if es.CheckCollision(
@@ -673,6 +679,7 @@ func (es *TetrisField) MovePiece(dx int) {
 		es.moveResets += 1
 		es.lockTimer = LOCK_DELAY
 	}
+	es.app.AudioEngine.PlaySound("move")
 }
 
 func (es *TetrisField) SoftDrop() {
@@ -730,6 +737,8 @@ func (es *TetrisField) HardDrop() {
 	es.score += 2 * (int64(es.hardDropHeight) - int64(es.cpY))
 	es.cpY = es.hardDropHeight
 	es.LockPiece()
+
+	es.app.AudioEngine.PlaySound("lock")
 }
 
 func (es *TetrisField) SwapHoldPiece() {

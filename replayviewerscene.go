@@ -29,7 +29,8 @@ func (rvs *ReplayViewerScene) Init(
 ) {
 	rvs.app = app
 	rvs.replayData = replayData
-	rvs.es = NewTetrisField(rvs.replayData.Seed, rvs.replayData.TetrisSettings)
+	rvs.es = NewTetrisField(rvs.replayData.Seed, rvs.replayData.TetrisSettings,
+rvs.app)
 
 	rvs.objective = rvs.replayData.ObjectiveSettings.Init(rvs.es)
 

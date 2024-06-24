@@ -43,7 +43,7 @@ func (gs *GameScene) Init(
 ) {
 	gs.app = app
 	gs.seed = time.Now().UnixNano()
-	gs.es = NewTetrisField(gs.seed, globalSettings)
+	gs.es = NewTetrisField(gs.seed, globalSettings, gs.app)
 
 	gs.globalSettings = globalSettings
 	gs.objectiveID = objectiveID
