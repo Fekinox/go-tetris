@@ -1,6 +1,5 @@
 package main
 
-// FIXME: Replays are still nondeterministic somehow. Dangit
 import (
 	"compress/gzip"
 	"encoding/base64"

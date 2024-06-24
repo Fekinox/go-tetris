@@ -54,6 +54,8 @@ type LineClearHandler func(garbage, nonGarbage int)
 type GameOverHandler func(failed bool, reason string)
 
 type TetrisField struct {
+	// FIXME: adding a hard dependency on the app is really unneccesary.
+	// rewrite this to use observer pattern instead
 	app *App
 	settings GlobalTetrisSettings
 
