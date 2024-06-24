@@ -247,7 +247,12 @@ func (es *TetrisField) Draw(sw, sh int, rr Area, lag float64) {
 	es.DrawWell(gameArea)
 
 	if !es.gameOver && es.gameStarted {
-		es.dashParticles.Draw(gameArea)
+		es.dashParticles.Draw(Area{
+			X: gameArea.X,
+			Y: gameArea.Y - 2,
+			Width: BOARD_WIDTH,
+			Height: BOARD_HEIGHT+2,
+		})
 	}
 
 	// Snap indicators
@@ -1017,7 +1022,7 @@ func (es *TetrisField) ClearLines() bool {
 	return clearedLines
 }
 
-var dashParticleData = MakeGrid(BOARD_WIDTH, BOARD_HEIGHT, 0.0)
+var dashParticleData = MakeGrid(BOARD_WIDTH, BOARD_HEIGHT+3, 0.0)
 
 func (es *TetrisField) DashParticles(
 	piece Grid[bool],
@@ -1080,7 +1085,7 @@ func (es *TetrisField) DashParticles(
 					posY := floorY + py
 					dashParticleData.Set(
 						posX,
-						posY-BOARD_HEIGHT,
+						posY-BOARD_HEIGHT+2,
 						strength)
 				}
 			}
