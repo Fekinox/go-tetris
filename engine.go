@@ -1024,20 +1024,13 @@ func (es *TetrisField) ClearLines() bool {
 	return clearedLines
 }
 
-var dashParticleData = MakeGrid(BOARD_WIDTH, BOARD_HEIGHT+3, 0.0)
-
 func (es *TetrisField) DashParticles(
 	piece Grid[bool],
 	pieceIdx int,
 	initX, initY int,
 	finX, finY int,
 ) {
-	// Reset dash particle data
-	for y := 0; y < dashParticleData.Height; y++ {
-		for x := 0; x < dashParticleData.Width; x++ {
-			dashParticleData.Set(x, y, 0.0)
-		}
-	}
+	dashParticleData := MakeGrid(BOARD_WIDTH, BOARD_HEIGHT+3, 0.0)
 
 	distance := math.Hypot(float64(initX-finX), float64(initY-finY))
 
