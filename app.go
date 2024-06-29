@@ -194,8 +194,6 @@ func (a *App) OpenMenuScene() {
 	menuScene := MenuScene{}
 	menuScene.Init(a)
 
-	a.CurrentScene.Cleanup()
-
 	a.NextScene = &menuScene
 }
 
@@ -211,8 +209,6 @@ func (a *App) OpenPreGameScene(
 		gts,
 		obj,
 	)
-
-	a.CurrentScene.Cleanup()
 
 	a.NextScene = &preGameScene
 }
@@ -230,8 +226,6 @@ func (a *App) OpenGameScene(
 		obj,
 	)
 
-	a.CurrentScene.Cleanup()
-
 	a.NextScene = &gameScene
 }
 
@@ -247,8 +241,6 @@ func (a *App) OpenReplayViewerScene(data ReplayData) {
 		a,
 		data,
 	)
-
-	a.CurrentScene.Cleanup()
 
 	a.NextScene = &replayScene
 }
