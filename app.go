@@ -45,6 +45,7 @@ func NewApp() *App {
 	Screen.Clear()
 
 	app := &App{
+		CurrentScene: &NullScene{},
 		DefaultStyle: tcell.StyleDefault.Background(tcell.ColorReset).
 			Foreground(tcell.ColorReset),
 		keyActionMap:  make(map[tcell.Key]Action),
@@ -192,69 +193,9 @@ func (a *App) OpenMenuScene() {
 	menuScene := MenuScene{}
 	menuScene.Init(a)
 
+	a.CurrentScene.Cleanup()
+
 	a.NextScene = &menuScene
-}
-
-func (a *App) OpenLineClearScene() {
-	gameScene := GameScene{}
-	gameScene.Init(
-		a,
-		GlobalTetrisSettings{
-			StartingLevel: 1,
-		},
-		LineClear,
-		&LineClearSettings{
-			Lines: 40,
-		},
-	)
-
-	a.CurrentScene = &gameScene
-}
-
-func (a *App) OpenEndlessScene() {
-	gameScene := GameScene{}
-	gameScene.Init(
-		a,
-		GlobalTetrisSettings{
-			StartingLevel: 1,
-		},
-		Endless,
-		&EndlessSettings{},
-	)
-
-	a.CurrentScene = &gameScene
-}
-
-func (a *App) OpenSurvivalScene() {
-	gameScene := GameScene{}
-	gameScene.Init(
-		a,
-		GlobalTetrisSettings{
-			StartingLevel: 1,
-		},
-		Survival,
-		&SurvivalSettings{
-			GarbageRate: 1000.0,
-		},
-	)
-
-	a.CurrentScene = &gameScene
-}
-
-func (a *App) OpenCheeseScene() {
-	gameScene := GameScene{}
-	gameScene.Init(
-		a,
-		GlobalTetrisSettings{
-			StartingLevel: 1,
-		},
-		Cheese,
-		&CheeseSettings{
-			Garbage: 18,
-		},
-	)
-
-	a.CurrentScene = &gameScene
 }
 
 func (a *App) OpenPreGameScene(
@@ -269,6 +210,8 @@ func (a *App) OpenPreGameScene(
 		gts,
 		obj,
 	)
+
+	a.CurrentScene.Cleanup()
 
 	a.CurrentScene = &preGameScene
 }
@@ -286,6 +229,8 @@ func (a *App) OpenGameScene(
 		obj,
 	)
 
+	a.CurrentScene.Cleanup()
+
 	a.CurrentScene = &gameScene
 }
 
@@ -301,6 +246,8 @@ func (a *App) OpenReplayViewerScene(data ReplayData) {
 		a,
 		data,
 	)
+
+	a.CurrentScene.Cleanup()
 
 	a.CurrentScene = &replayScene
 }

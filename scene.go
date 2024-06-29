@@ -9,3 +9,21 @@ type Scene interface {
 	Draw(sw, sh int, rr Area, lag float64)
 	Cleanup()
 }
+
+type NullScene struct {
+}
+
+func (ns *NullScene) HandleEvent(evt tcell.Event) {
+}
+
+func (ns *NullScene) HandleAction(act Action) {
+}
+
+func (ns *NullScene) Update() {
+}
+
+func (ns *NullScene) Draw(sw, sh int, rr Area, lag float64) {
+}
+
+func (ns *NullScene) Cleanup() {
+}

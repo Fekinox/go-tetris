@@ -72,6 +72,7 @@ func (gs *GameScene) HandleAction(act Action) {
 	case Quit:
 		gs.app.OpenMenuScene()
 	case Reset:
+		gs.app.Audio.StopSound("seelremix")
 		gs.seed = time.Now().UnixNano()
 		gs.es.HandleReset(gs.seed)
 		gs.objective = gs.objectiveSettings.Init(gs.es)
