@@ -136,18 +136,14 @@ func (a *App) Loop() {
 					var ok bool
 					if ev.Key() == tcell.KeyRune {
 						action, ok = a.runeActionMap[ev.Rune()]
-						if !ok {
-							continue
-						}
 					} else {
 						action, ok = a.keyActionMap[ev.Key()]
-						if !ok {
-							continue
-						}
 					}
-					a.CurrentScene.HandleAction(action)
+					if ok {
+						a.CurrentScene.HandleAction(action)
+					}
 
-					a.Logger.Printf("action: %v", action.ToString())
+					a.CurrentScene.HandleEvent(ev)
 				}
 			default:
 				a.CurrentScene.HandleEvent(ev)
@@ -259,6 +255,38 @@ func (a *App) OpenCheeseScene() {
 		&CheeseSettings{
 			Garbage: 18,
 		},
+	)
+
+	a.CurrentScene = &gameScene
+}
+
+func (a *App) OpenPreGameScene(
+	gts GlobalTetrisSettings,
+	oid ObjectiveID,
+	obj ObjectiveSettings,
+) {
+	preGameScene := PreGameScene{}
+	preGameScene.Init(
+		a,
+		oid,
+		gts,
+		obj,
+	)
+
+	a.CurrentScene = &preGameScene
+}
+
+func (a *App) OpenGameScene(
+	gts GlobalTetrisSettings,
+	oid ObjectiveID,
+	obj ObjectiveSettings,
+) {
+	gameScene := GameScene{}
+	gameScene.Init(
+		a,
+		gts,
+		oid,
+		obj,
 	)
 
 	a.CurrentScene = &gameScene

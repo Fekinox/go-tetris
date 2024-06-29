@@ -6,7 +6,7 @@ import (
 )
 
 type Stat struct {
-	Name string
+	Name    string
 	Compute func() []string
 }
 
@@ -73,4 +73,29 @@ func CreateElapsedTimeStat(es *TetrisField) Stat {
 			}
 		},
 	}
+}
+
+func CreateCountdownStat(es *TetrisField, duration int64) Stat {
+	return Stat{
+		Compute: func() []string {
+			rawTime := float64(es.frameCount) * UPDATE_TICK_RATE_MS
+			rawTime = float64(duration) * 1000 - rawTime
+			timeMinutes := math.Trunc(rawTime / (60 * 1000))
+			timeSeconds := math.Trunc((rawTime - timeMinutes*60*1000) / 1000)
+			timeMillis := math.Trunc((rawTime - timeMinutes*60*1000 -
+				timeSeconds*1000))
+
+			return []string{
+				"TIME",
+				fmt.Sprintf("%0d:%02d.%03d",
+					int(timeMinutes),
+					int(timeSeconds),
+					int(timeMillis),
+				),
+			}
+		},
+	}
+}
+
+func CreateGarbageStat(co *CheeseObjective) {
 }

@@ -6,8 +6,12 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-// FIXME: Need to thoroughly test that replays are in fact deterministic
-// and model exactly what happens in the game
+// TODO: replays look deterministic but implementing some basic tests
+// might be smart
+// TODO: game scene and replay viewer scene have extremely similar logic
+// besides the fact that the replay viewer automatically performs some actions.
+// so it might be economical to merge the two with dependency injection or
+// something
 type ReplayViewerScene struct {
 	app *App
 	es  *TetrisField
@@ -16,11 +20,10 @@ type ReplayViewerScene struct {
 
 	replayData     ReplayData
 	countdownTimer float64
+	countdownSpeed float64
 	gameStarted    bool
 
 	actionPointer int
-
-	stats []Stat
 }
 
 func (rvs *ReplayViewerScene) Init(
@@ -30,18 +33,14 @@ func (rvs *ReplayViewerScene) Init(
 	rvs.app = app
 	rvs.replayData = replayData
 	rvs.es = NewTetrisField(rvs.replayData.Seed, rvs.replayData.TetrisSettings,
-rvs.app)
+		rvs.app)
 
 	rvs.objective = rvs.replayData.ObjectiveSettings.Init(rvs.es)
 
 	rvs.countdownTimer = COUNTDOWN_DURATION_SECS
+	rvs.countdownSpeed = COUNTDOWN_SPEED
+	
 	rvs.gameStarted = false
-
-	rvs.stats = []Stat {
-		CreateElapsedTimeStat(rvs.es),
-		CreatePiecesStat(rvs.es),
-		CreateLinesStat(rvs.es),
-	}
 }
 
 func (rvs *ReplayViewerScene) HandleEvent(ev tcell.Event) {
@@ -56,6 +55,7 @@ func (rvs *ReplayViewerScene) HandleAction(act Action) {
 		rvs.objective = rvs.replayData.ObjectiveSettings.Init(rvs.es)
 
 		rvs.countdownTimer = COUNTDOWN_DURATION_SECS
+		rvs.countdownSpeed = RESET_COUNTDOWN_SPEED
 		rvs.gameStarted = false
 
 		rvs.actionPointer = 0
@@ -64,7 +64,7 @@ func (rvs *ReplayViewerScene) HandleAction(act Action) {
 
 func (rvs *ReplayViewerScene) Update() {
 	if !rvs.gameStarted {
-		rvs.countdownTimer -= UPDATE_TICK_RATE_MS / 1000.0
+		rvs.countdownTimer -= (UPDATE_TICK_RATE_MS / 1000.0) * rvs.countdownSpeed
 		if rvs.countdownTimer < 0 {
 			rvs.gameStarted = true
 			rvs.es.gameStarted = true
@@ -92,11 +92,11 @@ func (rvs *ReplayViewerScene) Draw(sw, sh int, rr Area, lag float64) {
 	rvs.es.Draw(sw, sh, playingField, lag)
 
 	yOffset := 0
-	for _, stat := range rvs.stats {
+	for _, stat := range rvs.objective.GetStats() {
 		strings := stat.Compute()
 		SetStringArray(
 			anchorX,
-			anchorY+yOffset - len(strings),
+			anchorY+yOffset-len(strings),
 			defStyle,
 			true,
 			strings...,

@@ -1,19 +1,32 @@
 package main
 
 type SurvivalSettings struct {
-	GarbageRate float64
+	GarbageRate int64
 }
 
 type SurvivalObjective struct {
 	GarbageRate  float64
 	GarbageTimer float64
+
+	stats []Stat
 }
 
 func (ss *SurvivalSettings) Init(es *TetrisField) Objective {
+	val := float64(ss.GarbageRate)
 	return &SurvivalObjective{
-		GarbageRate:  ss.GarbageRate,
-		GarbageTimer: ss.GarbageRate,
+		GarbageRate:  val,
+		GarbageTimer: val,
+		
+		stats: []Stat {
+			CreateElapsedTimeStat(es),
+			CreateLinesStat(es),
+			CreatePiecesStat(es),
+		},
 	}
+}
+
+func (so *SurvivalObjective) GetStats() []Stat {
+	return so.stats
 }
 
 func (so *SurvivalObjective) Update(es *TetrisField) {
@@ -32,4 +45,17 @@ func (so *SurvivalObjective) Update(es *TetrisField) {
 
 func (so *SurvivalObjective) HandleAction(act Action, es *TetrisField) {
 	es.HandleAction(act)
+}
+
+func (ss *SurvivalSettings) CreateFormFields() []FormField {
+	return []FormField{
+		NewIntegerField(
+			"Garbage Rate",
+			ss.GarbageRate,
+			func(value int64) {
+				ss.GarbageRate = value
+			},
+			WithMin(100),
+		),
+	}
 }

@@ -57,7 +57,9 @@ func NewAudioEngine() (*AudioEngine, error) {
 
 func (ae *AudioEngine) PlaySound(name string) {
 	player, ok := ae.Players[name]
-	if !ok { return }
+	if !ok {
+		return
+	}
 
 	player.SetPosition(0)
 	player.Play()

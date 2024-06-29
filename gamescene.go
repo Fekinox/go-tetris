@@ -11,7 +11,10 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-const COUNTDOWN_DURATION_SECS = 4.0
+const COUNTDOWN_STEPS = 1
+const COUNTDOWN_DURATION_SECS = 1.0 + float64(COUNTDOWN_STEPS)
+const COUNTDOWN_SPEED = 1.0
+const RESET_COUNTDOWN_SPEED = 1.0
 
 var COUNTDOWN_TIMER_LEVELS = []rune(
 	" .-*-. ",
@@ -28,11 +31,10 @@ type GameScene struct {
 	objective         Objective
 
 	countdownTimer float64
+	countdownSpeed float64
 	gameStarted    bool
 
 	actions []ReplayAction
-
-	stats []Stat
 }
 
 func (gs *GameScene) Init(
@@ -51,6 +53,7 @@ func (gs *GameScene) Init(
 	gs.objective = gs.objectiveSettings.Init(gs.es)
 
 	gs.countdownTimer = COUNTDOWN_DURATION_SECS
+	gs.countdownSpeed = COUNTDOWN_SPEED
 	gs.gameStarted = false
 
 	gs.actions = make([]ReplayAction, 0)
@@ -58,12 +61,6 @@ func (gs *GameScene) Init(
 	gs.es.AddGameOverHandler(func(failed bool, reason string) {
 		gs.OnGameOver(failed, reason)
 	})
-
-	gs.stats = []Stat {
-		CreateElapsedTimeStat(gs.es),
-		CreatePiecesStat(gs.es),
-		CreateLinesStat(gs.es),
-	}
 }
 
 func (gs *GameScene) HandleEvent(ev tcell.Event) {
@@ -80,6 +77,7 @@ func (gs *GameScene) HandleAction(act Action) {
 
 		gs.countdownTimer = COUNTDOWN_DURATION_SECS
 		gs.gameStarted = false
+		gs.countdownSpeed = RESET_COUNTDOWN_SPEED
 
 		gs.actions = make([]ReplayAction, 0)
 
@@ -99,7 +97,7 @@ func (gs *GameScene) HandleAction(act Action) {
 
 func (gs *GameScene) Update() {
 	if !gs.gameStarted {
-		gs.countdownTimer -= UPDATE_TICK_RATE_MS / 1000.0
+		gs.countdownTimer -= (UPDATE_TICK_RATE_MS / 1000.0) * gs.countdownSpeed
 		if gs.countdownTimer < 0 {
 			gs.gameStarted = true
 			gs.es.gameStarted = true
@@ -151,11 +149,11 @@ func (gs *GameScene) Draw(sw, sh int, rr Area, lag float64) {
 	gs.es.Draw(sw, sh, playingField, lag)
 
 	yOffset := 0
-	for _, stat := range gs.stats {
+	for _, stat := range gs.objective.GetStats() {
 		strings := stat.Compute()
 		SetStringArray(
 			anchorX,
-			anchorY+yOffset - len(strings),
+			anchorY+yOffset-len(strings),
 			defStyle,
 			true,
 			strings...,

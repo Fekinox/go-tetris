@@ -3,10 +3,11 @@ package main
 import "github.com/gdamore/tcell/v2"
 
 var MENU_OPTIONS = []string{
-	"40 Line Clear",
+	"Sprint",
 	"Endless",
 	"Survival",
 	"Cheese",
+	"Score Attack",
 	"Replays",
 	"Credits",
 	"Quit",
@@ -44,18 +45,48 @@ func (ms *MenuScene) Update() {
 func (ms *MenuScene) ConfirmAction() {
 	switch ms.menuFocus {
 	case 0:
-		ms.app.OpenLineClearScene()
+		ms.app.OpenPreGameScene(
+			DefaultTetrisSettings,
+			LineClear,
+			&LineClearSettings{
+				Lines: 40,
+			},
+		)
 	case 1:
-		ms.app.OpenEndlessScene()
+		ms.app.OpenPreGameScene(
+			DefaultTetrisSettings,
+			Endless,
+			&EndlessSettings{},
+		)
 	case 2:
-		ms.app.OpenSurvivalScene()
+		ms.app.OpenPreGameScene(
+			DefaultTetrisSettings,
+			Survival,
+			&SurvivalSettings{
+				GarbageRate: 1000,
+			},
+		)
 	case 3:
-		ms.app.OpenCheeseScene()
+		ms.app.OpenPreGameScene(
+			DefaultTetrisSettings,
+			Cheese,
+			&CheeseSettings{
+				Garbage: 18,
+			},
+		)
 	case 4:
-		ms.app.OpenReplayBrowserScene()
+		ms.app.OpenPreGameScene(
+			DefaultTetrisSettings,
+			ScoreAttack,
+			&ScoreAttackSettings{
+				Duration: 120,
+			},
+		)
 	case 5:
-		break
+		ms.app.OpenReplayBrowserScene()
 	case 6:
+		break
+	case 7:
 		ms.app.WillQuit = true
 	}
 }

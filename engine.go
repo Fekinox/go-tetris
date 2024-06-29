@@ -8,7 +8,15 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-const UPDATE_TICK_RATE_MS float64 = 1000.0 / 60.0
+const FRAMES_PER_SECOND int64 = 60
+const UPDATE_TICK_RATE_MS float64 = 1000.0 / float64(FRAMES_PER_SECOND)
+// When speed = 1, this determines the number of frames it takes for a piece
+// to move down 1 tile due to gravity.
+const BASE_GRAVITY_UNIT = 128
+
+const BASE_GRAVITY = 2
+const BASE_GRAVITY_INCREASE = 1
+const MAX_GRAVITY = 64
 
 const BOARD_WIDTH = 10
 const BOARD_HEIGHT = 20
@@ -56,7 +64,7 @@ type GameOverHandler func(failed bool, reason string)
 type TetrisField struct {
 	// FIXME: adding a hard dependency on the app is really unneccesary.
 	// rewrite this to use observer pattern instead
-	app *App
+	app      *App
 	settings GlobalTetrisSettings
 
 	LastRenderDuration float64
@@ -71,8 +79,8 @@ type TetrisField struct {
 	cpRot  int
 
 	airborne     bool
-	gravityTimer int
-	fallRate     int
+	gravityTimer int64
+	fallRate     int64
 	lockTimer    int
 	moveResets   int
 	floorKicked  bool
@@ -118,9 +126,13 @@ type TetrisField struct {
 	maxStackHeight int
 }
 
-func NewTetrisField(seed int64, settings GlobalTetrisSettings, app *App) *TetrisField {
+func NewTetrisField(
+	seed int64,
+	settings GlobalTetrisSettings,
+	app *App,
+) *TetrisField {
 	es := TetrisField{
-		app: app,
+		app:                app,
 		settings:           settings,
 		LastUpdateDuration: UPDATE_TICK_RATE_MS,
 
@@ -145,11 +157,9 @@ func (es *TetrisField) StartGame(seed int64) {
 	es.combo = 0
 	es.startingLevel = es.settings.StartingLevel
 	es.level = es.startingLevel
-	speedFactor := int(min(14, es.level-1))
-	es.fallRate =
-		MIN_SPEED + speedFactor*(MAX_SPEED-MIN_SPEED)/14
+	es.fallRate = es.settings.BaseGravity + es.settings.GravityIncrease*(es.level-1)
 
-	es.gravityTimer = es.fallRate
+	es.gravityTimer = 64
 	es.dashParticles = InitParticles(0.1)
 	es.frameCount = 0
 	es.pieceCount = 0
@@ -204,9 +214,9 @@ func (es *TetrisField) Update() {
 	es.dashParticles.Update()
 
 	if es.airborne {
-		es.gravityTimer -= 1
-		if es.gravityTimer <= 0 {
-			es.gravityTimer = es.fallRate
+		es.gravityTimer -= es.fallRate
+		for es.gravityTimer <= 0 {
+			es.gravityTimer += BASE_GRAVITY_UNIT
 			es.GravityDrop()
 		}
 	} else {
@@ -239,19 +249,24 @@ func (es *TetrisField) Draw(sw, sh int, rr Area, lag float64) {
 		Y: rr.Y + 2,
 	}
 
-	scoreArea := Area{
+	comboArea := Area{
 		X: nextPieceArea.Right() + 2,
 		Y: rr.Y + 1,
+	}
+
+	scoreArea := Area{
+		X: gameArea.X + BOARD_WIDTH/2,
+		Y: gameArea.Bottom() + 1,
 	}
 
 	es.DrawWell(gameArea)
 
 	if !es.gameOver && es.gameStarted {
 		es.dashParticles.Draw(Area{
-			X: gameArea.X,
-			Y: gameArea.Y - 2,
-			Width: BOARD_WIDTH,
-			Height: BOARD_HEIGHT+2,
+			X:      gameArea.X,
+			Y:      gameArea.Y - 2,
+			Width:  BOARD_WIDTH,
+			Height: BOARD_HEIGHT + 2,
 		})
 	}
 
@@ -342,6 +357,7 @@ func (es *TetrisField) Draw(sw, sh int, rr Area, lag float64) {
 
 	es.DrawNextPieces(nextPieceArea)
 	es.DrawHoldPiece(holdPieceArea)
+	es.DrawCombo(comboArea)
 	es.DrawScore(scoreArea)
 
 	if es.gameOver {
@@ -456,14 +472,29 @@ func (es *TetrisField) DrawHoldPiece(rr Area) {
 	}
 }
 
+func (es *TetrisField) DrawCombo(rr Area) {
+	if es.combo > 1 {
+		SetString(
+			rr.X,
+			rr.Y+6,
+			fmt.Sprintf("%dx COMBO", es.combo),
+			defStyle)
+	}
+}
+
 func (es *TetrisField) DrawScore(rr Area) {
-	// if es.combo > 1 {
-	SetString(
+	SetCenteredString(
 		rr.X,
-		rr.Y+6,
-		fmt.Sprintf("%dx COMBO", es.maxStackHeight),
-		defStyle)
-	// }
+		rr.Y,
+		fmt.Sprint(es.score),
+		defStyle,
+	)
+	SetCenteredString(
+		rr.X,
+		rr.Y+1,
+		fmt.Sprint(es.level),
+		defStyle,
+	)
 }
 
 func (es *TetrisField) DrawGrid(rr Area) {
@@ -615,22 +646,23 @@ func (es *TetrisField) Rotate(offset int) {
 		if !oldAirborne && newAirborne {
 			if es.floorKicked {
 				es.cpY = es.hardDropHeight
-				es.gravityTimer = es.fallRate
+				es.gravityTimer = BASE_GRAVITY_UNIT
 				newAirborne = false
 			}
 
 			es.floorKicked = true
 		}
 
-		if !oldAirborne && !newAirborne && es.moveResets < MAX_MOVE_RESETS {
+		if !oldAirborne && !newAirborne &&
+			es.moveResets < int(es.settings.MaxResets) {
 			es.moveResets += 1
-			es.lockTimer = LOCK_DELAY
+			es.lockTimer = int(es.settings.LockDelay)
 		}
 
 		// If you are now on the ground after being airborne, start the lock
 		// timer.
 		if oldAirborne && !newAirborne {
-			es.lockTimer = LOCK_DELAY
+			es.lockTimer = int(es.settings.LockDelay)
 		}
 
 		es.airborne = newAirborne
@@ -682,9 +714,10 @@ func (es *TetrisField) MovePiece(dx int) {
 	oldAirborne := es.airborne
 	es.SetAirborne()
 
-	if !oldAirborne && !es.airborne && es.moveResets < MAX_MOVE_RESETS {
+	if !oldAirborne && !es.airborne &&
+		es.moveResets < int(es.settings.MaxResets) {
 		es.moveResets += 1
-		es.lockTimer = LOCK_DELAY
+		es.lockTimer = int(es.settings.LockDelay)
 	}
 	es.app.AudioEngine.PlaySound("move")
 }
@@ -699,7 +732,7 @@ func (es *TetrisField) SoftDrop() {
 		es.score += int64(es.hardDropHeight) - int64(es.cpY)
 		es.cpY = es.hardDropHeight
 		es.shiftMode = false
-		es.gravityTimer = es.fallRate
+		es.gravityTimer = BASE_GRAVITY_UNIT
 		es.SetAirborne()
 		es.app.AudioEngine.PlaySound("dash")
 
@@ -713,7 +746,7 @@ func (es *TetrisField) SoftDrop() {
 
 	es.cpY += 1
 	es.score += 1
-	es.gravityTimer = es.fallRate
+	es.gravityTimer = BASE_GRAVITY_UNIT
 	es.SetAirborne()
 	es.app.AudioEngine.PlaySound("move")
 }
@@ -832,7 +865,7 @@ func (es *TetrisField) SetAirborne() {
 	// if you were previously in the air and now you aren't in the air,
 	// start the lock timer
 	if oldAirborne && !newAirborne {
-		es.lockTimer = LOCK_DELAY
+		es.lockTimer = int(es.settings.LockDelay)
 	}
 
 	if newAirborne {
@@ -983,9 +1016,8 @@ func (es *TetrisField) ClearLines() bool {
 		clearedLines = true
 		es.lines += int64(len(lines))
 		es.level = (es.lines / 10) + es.startingLevel
-		speedFactor := int(min(14, es.level-1))
-		es.fallRate =
-			MIN_SPEED + speedFactor*(MAX_SPEED-MIN_SPEED)/14
+		es.fallRate = es.settings.BaseGravity + es.settings.GravityIncrease*
+			(es.level-1)
 	}
 
 	// Scoring
@@ -1023,6 +1055,8 @@ func (es *TetrisField) ClearLines() bool {
 
 	return clearedLines
 }
+
+var dashParticleData = MakeGrid(BOARD_WIDTH, BOARD_HEIGHT+3, 0.0)
 
 func (es *TetrisField) DashParticles(
 	piece Grid[bool],
