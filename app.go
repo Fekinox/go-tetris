@@ -110,6 +110,7 @@ func (a *App) Loop() {
 		prevTime = currTime
 
 		if a.NextScene != nil {
+			a.CurrentScene.Cleanup()
 			a.CurrentScene = a.NextScene
 			a.NextScene = nil
 		}
@@ -213,7 +214,7 @@ func (a *App) OpenPreGameScene(
 
 	a.CurrentScene.Cleanup()
 
-	a.CurrentScene = &preGameScene
+	a.NextScene = &preGameScene
 }
 
 func (a *App) OpenGameScene(
@@ -231,7 +232,7 @@ func (a *App) OpenGameScene(
 
 	a.CurrentScene.Cleanup()
 
-	a.CurrentScene = &gameScene
+	a.NextScene = &gameScene
 }
 
 func (a *App) OpenReplayBrowserScene() {
@@ -249,5 +250,5 @@ func (a *App) OpenReplayViewerScene(data ReplayData) {
 
 	a.CurrentScene.Cleanup()
 
-	a.CurrentScene = &replayScene
+	a.NextScene = &replayScene
 }
