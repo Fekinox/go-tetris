@@ -10,6 +10,7 @@ import (
 
 const FRAMES_PER_SECOND int64 = 60
 const UPDATE_TICK_RATE_MS float64 = 1000.0 / float64(FRAMES_PER_SECOND)
+
 // When speed = 1, this determines the number of frames it takes for a piece
 // to move down 1 tile due to gravity.
 const BASE_GRAVITY_UNIT = 128
@@ -62,9 +63,7 @@ type LineClearHandler func(garbage, nonGarbage int)
 type GameOverHandler func(failed bool, reason string)
 
 type TetrisField struct {
-	// FIXME: adding a hard dependency on the app is really unneccesary.
-	// rewrite this to use observer pattern instead
-	app      *App
+	audio    AudioService
 	settings GlobalTetrisSettings
 
 	LastRenderDuration float64
@@ -129,10 +128,9 @@ type TetrisField struct {
 func NewTetrisField(
 	seed int64,
 	settings GlobalTetrisSettings,
-	app *App,
 ) *TetrisField {
 	es := TetrisField{
-		app:                app,
+		audio:              &NullAudioEngine{},
 		settings:           settings,
 		LastUpdateDuration: UPDATE_TICK_RATE_MS,
 
@@ -143,6 +141,10 @@ func NewTetrisField(
 	es.StartGame(seed)
 
 	return &es
+}
+
+func (es *TetrisField) RegisterAudio(audio AudioService) {
+	es.audio = audio
 }
 
 func (es *TetrisField) StartGame(seed int64) {
@@ -610,7 +612,7 @@ func (es *TetrisField) ToggleShiftMode() {
 }
 
 func (es *TetrisField) Rotate(offset int) {
-	es.app.AudioEngine.PlaySound("move")
+	es.audio.PlaySound("move")
 
 	newRotation := (es.cpRot + offset) % 4
 	newRotation = (newRotation + 4) % 4
@@ -697,7 +699,7 @@ func (es *TetrisField) MovePiece(dx int) {
 		es.SetHardDropHeight()
 		es.SetAirborne()
 
-		es.app.AudioEngine.PlaySound("dash")
+		es.audio.PlaySound("dash")
 		return
 	}
 	if es.CheckCollision(
@@ -719,7 +721,7 @@ func (es *TetrisField) MovePiece(dx int) {
 		es.moveResets += 1
 		es.lockTimer = int(es.settings.LockDelay)
 	}
-	es.app.AudioEngine.PlaySound("move")
+	es.audio.PlaySound("move")
 }
 
 func (es *TetrisField) SoftDrop() {
@@ -734,7 +736,7 @@ func (es *TetrisField) SoftDrop() {
 		es.shiftMode = false
 		es.gravityTimer = BASE_GRAVITY_UNIT
 		es.SetAirborne()
-		es.app.AudioEngine.PlaySound("dash")
+		es.audio.PlaySound("dash")
 
 		return
 	}
@@ -748,7 +750,7 @@ func (es *TetrisField) SoftDrop() {
 	es.score += 1
 	es.gravityTimer = BASE_GRAVITY_UNIT
 	es.SetAirborne()
-	es.app.AudioEngine.PlaySound("move")
+	es.audio.PlaySound("move")
 }
 
 func (es *TetrisField) GravityDrop() {
@@ -780,7 +782,7 @@ func (es *TetrisField) HardDrop() {
 	es.cpY = es.hardDropHeight
 	es.LockPiece()
 
-	es.app.AudioEngine.PlaySound("lock")
+	es.audio.PlaySound("lock")
 }
 
 func (es *TetrisField) SwapHoldPiece() {

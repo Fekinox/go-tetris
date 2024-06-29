@@ -7,4 +7,5 @@ type Scene interface {
 	HandleAction(act Action)
 	Update()
 	Draw(sw, sh int, rr Area, lag float64)
+	Cleanup()
 }

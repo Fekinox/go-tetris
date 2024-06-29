@@ -22,9 +22,9 @@ func (ms *ReplayBrowserScene) Init(app *App) {
 
 	go func() {
 		replayDir, err := os.Open("replays")
+		defer replayDir.Close()
 		if err != nil {
 			return
-
 		}
 		entries, err := replayDir.ReadDir(0)
 		if err != nil {
@@ -119,4 +119,7 @@ func (ms *ReplayBrowserScene) Draw(sw, sh int, rr Area, lag float64) {
 				style)
 		}
 	}
+}
+
+func (ms *ReplayBrowserScene) Cleanup() {
 }

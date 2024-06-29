@@ -116,3 +116,6 @@ func (ms *MenuScene) Draw(sw, sh int, rr Area, lag float64) {
 			style)
 	}
 }
+
+func (ms *MenuScene) Cleanup() {
+}

@@ -45,7 +45,8 @@ func (gs *GameScene) Init(
 ) {
 	gs.app = app
 	gs.seed = time.Now().UnixNano()
-	gs.es = NewTetrisField(gs.seed, globalSettings, gs.app)
+	gs.es = NewTetrisField(gs.seed, globalSettings)
+	gs.es.RegisterAudio(gs.app.Audio)
 
 	gs.globalSettings = globalSettings
 	gs.objectiveID = objectiveID
@@ -200,4 +201,7 @@ func (gs *GameScene) DrawProgressBar(anchorX, anchorY int, value float64) {
 			nil, defStyle,
 		)
 	}
+}
+
+func (gs *GameScene) Cleanup() {
 }

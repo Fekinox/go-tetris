@@ -182,3 +182,6 @@ func (pgs *PreGameScene) Draw(sw, sh int, rr Area, lag float64) {
 		}
 	}
 }
+
+func (pgs *PreGameScene) Cleanup() {
+}

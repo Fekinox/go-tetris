@@ -32,8 +32,8 @@ func (rvs *ReplayViewerScene) Init(
 ) {
 	rvs.app = app
 	rvs.replayData = replayData
-	rvs.es = NewTetrisField(rvs.replayData.Seed, rvs.replayData.TetrisSettings,
-		rvs.app)
+	rvs.es = NewTetrisField(rvs.replayData.Seed, rvs.replayData.TetrisSettings)
+	rvs.es.RegisterAudio(app.Audio)
 
 	rvs.objective = rvs.replayData.ObjectiveSettings.Init(rvs.es)
 
@@ -146,4 +146,7 @@ func (rvs *ReplayViewerScene) DrawProgressBar(
 			nil, defStyle,
 		)
 	}
+}
+
+func (rvs *ReplayViewerScene) Cleanup() {
 }

@@ -26,7 +26,7 @@ type App struct {
 	LogFileHandle *os.File
 	Logger        *log.Logger
 
-	AudioEngine *AudioEngine
+	Audio AudioService
 }
 
 func NewApp() *App {
@@ -85,10 +85,7 @@ func NewApp() *App {
 
 	app.Logger = log.New(app.LogFileHandle, "", log.Flags())
 
-	app.AudioEngine, err = NewAudioEngine()
-	if err != nil {
-		log.Fatalf("%+v", err)
-	}
+	app.Audio = MustCreateAudioEngine()
 
 	return app
 }
