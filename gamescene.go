@@ -103,6 +103,8 @@ func (gs *GameScene) Update() {
 			gs.gameStarted = true
 			gs.es.gameStarted = true
 			gs.es.GetRandomPiece()
+
+			gs.app.Audio.PlaySound("seelremix")
 		}
 
 		return
@@ -204,4 +206,5 @@ func (gs *GameScene) DrawProgressBar(anchorX, anchorY int, value float64) {
 }
 
 func (gs *GameScene) Cleanup() {
+	gs.app.Audio.StopSound("seelremix")
 }

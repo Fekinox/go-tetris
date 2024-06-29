@@ -149,4 +149,5 @@ func (rvs *ReplayViewerScene) DrawProgressBar(
 }
 
 func (rvs *ReplayViewerScene) Cleanup() {
+	rvs.app.Audio.StopSound("seelremix")
 }
