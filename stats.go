@@ -10,6 +10,21 @@ type Stat struct {
 	Compute func() []string
 }
 
+func DrawStats(stats []Stat, x, y int) {
+	yOffset := 0
+	for _, stat := range stats {
+		strings := stat.Compute()
+		SetStringArray(
+			x,
+			y+yOffset-len(strings),
+			defStyle,
+			true,
+			strings...,
+		)
+		yOffset -= len(strings) + 1
+	}
+}
+
 func CreateLinesStat(es *TetrisField) Stat {
 	return Stat{
 		Compute: func() []string {
@@ -26,6 +41,28 @@ func CreateLinesStat(es *TetrisField) Stat {
 			return []string{
 				"LINES",
 				fmt.Sprintf("%d", es.lines),
+				linesPerMinute,
+			}
+		},
+	}
+}
+
+func CreateLinesRemainingStat(es *TetrisField, limit int64) Stat {
+	return Stat{
+		Compute: func() []string {
+			rawTime := float64(es.frameCount) * UPDATE_TICK_RATE_MS
+
+			lpm := float64(es.lines) / (rawTime / (1000))
+
+			if math.IsNaN(lpm) || math.IsInf(lpm, 0) {
+				lpm = 0
+			}
+
+			linesPerMinute := fmt.Sprintf("%.2f l/m", lpm)
+
+			return []string{
+				"LINES",
+				fmt.Sprintf("%d/%d", es.lines, limit),
 				linesPerMinute,
 			}
 		},

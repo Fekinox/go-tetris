@@ -90,19 +90,7 @@ func (rvs *ReplayViewerScene) Draw(sw, sh int, rr Area, lag float64) {
 	anchorY := playingField.Bottom() - 2
 
 	rvs.es.Draw(sw, sh, playingField, lag)
-
-	yOffset := 0
-	for _, stat := range rvs.objective.GetStats() {
-		strings := stat.Compute()
-		SetStringArray(
-			anchorX,
-			anchorY+yOffset-len(strings),
-			defStyle,
-			true,
-			strings...,
-		)
-		yOffset -= len(strings) + 1
-	}
+	DrawStats(rvs.objective.GetStats(), anchorX, anchorY)
 
 	if !rvs.gameStarted {
 		textAnchorX := playingField.X + BOARD_WIDTH/2
