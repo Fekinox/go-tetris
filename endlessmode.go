@@ -9,7 +9,7 @@ type EndlessObjective struct {
 
 func (els *EndlessSettings) Init(es *TetrisField) Objective {
 	return &EndlessObjective{
-		stats: []Stat {
+		stats: []Stat{
 			CreateElapsedTimeStat(es),
 			CreateLinesStat(es),
 			CreatePiecesStat(es),

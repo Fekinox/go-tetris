@@ -16,8 +16,8 @@ func (ss *SurvivalSettings) Init(es *TetrisField) Objective {
 	return &SurvivalObjective{
 		GarbageRate:  val,
 		GarbageTimer: val,
-		
-		stats: []Stat {
+
+		stats: []Stat{
 			CreateElapsedTimeStat(es),
 			CreateLinesStat(es),
 			CreatePiecesStat(es),

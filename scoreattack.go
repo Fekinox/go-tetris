@@ -16,7 +16,7 @@ func (sas *ScoreAttackSettings) Init(es *TetrisField) Objective {
 	so := &ScoreAttackObjective{
 		Duration: sas.Duration,
 
-		stats: []Stat {
+		stats: []Stat{
 			CreateCountdownStat(es, sas.Duration),
 			CreateLinesStat(es),
 			CreatePiecesStat(es),
@@ -50,7 +50,7 @@ func (so *ScoreAttackObjective) Update(es *TetrisField) {
 
 	es.Update()
 
-	if es.frameCount >= so.Duration * FRAMES_PER_SECOND {
+	if es.frameCount >= so.Duration*FRAMES_PER_SECOND {
 		es.ObjectiveComplete("Time out")
 	}
 }

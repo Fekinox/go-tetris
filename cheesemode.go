@@ -11,8 +11,8 @@ type CheeseSettings struct {
 
 type CheeseObjective struct {
 	CurrentGarbage int64
-	GarbageLimit int64
-	Endless bool
+	GarbageLimit   int64
+	Endless        bool
 
 	stats []Stat
 }
@@ -20,10 +20,10 @@ type CheeseObjective struct {
 func (cs *CheeseSettings) Init(es *TetrisField) Objective {
 	co := &CheeseObjective{
 		CurrentGarbage: 0,
-		GarbageLimit: cs.Garbage,
-		Endless: cs.Endless,
+		GarbageLimit:   cs.Garbage,
+		Endless:        cs.Endless,
 
-		stats: []Stat {
+		stats: []Stat{
 			CreateElapsedTimeStat(es),
 			CreateLinesStat(es),
 			CreatePiecesStat(es),
@@ -35,7 +35,7 @@ func (cs *CheeseSettings) Init(es *TetrisField) Objective {
 			es.AddGarbage(1)
 		}
 	} else {
-		for i := int64(0); i < min(co.GarbageLimit - co.CurrentGarbage, MAX_CHEESE_GARBAGE_LINES); i++ {
+		for i := int64(0); i < min(co.GarbageLimit-co.CurrentGarbage, MAX_CHEESE_GARBAGE_LINES); i++ {
 			es.AddGarbage(1)
 		}
 	}
@@ -84,7 +84,8 @@ func (co *CheeseObjective) OnLineClear(garbage int, es *TetrisField) {
 		if !co.Endless && co.CurrentGarbage == co.GarbageLimit {
 			es.ObjectiveComplete("Cleared all garbage")
 		}
-		if co.Endless || co.GarbageLimit - co.CurrentGarbage >= MAX_CHEESE_GARBAGE_LINES {
+		if co.Endless ||
+			co.GarbageLimit-co.CurrentGarbage >= MAX_CHEESE_GARBAGE_LINES {
 			es.QueueGarbage(1)
 		}
 	}

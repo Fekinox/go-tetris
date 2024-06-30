@@ -79,7 +79,7 @@ func CreateCountdownStat(es *TetrisField, duration int64) Stat {
 	return Stat{
 		Compute: func() []string {
 			rawTime := float64(es.frameCount) * UPDATE_TICK_RATE_MS
-			rawTime = float64(duration) * 1000 - rawTime
+			rawTime = float64(duration)*1000 - rawTime
 			timeMinutes := math.Trunc(rawTime / (60 * 1000))
 			timeSeconds := math.Trunc((rawTime - timeMinutes*60*1000) / 1000)
 			timeMillis := math.Trunc((rawTime - timeMinutes*60*1000 -

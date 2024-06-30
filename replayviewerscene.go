@@ -39,7 +39,7 @@ func (rvs *ReplayViewerScene) Init(
 
 	rvs.countdownTimer = COUNTDOWN_DURATION_SECS
 	rvs.countdownSpeed = COUNTDOWN_SPEED
-	
+
 	rvs.gameStarted = false
 }
 

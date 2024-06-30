@@ -14,7 +14,7 @@ func (lcs *LineClearSettings) Init(es *TetrisField) Objective {
 	return &LineClearObjective{
 		Lines: lcs.Lines,
 
-		stats: []Stat {
+		stats: []Stat{
 			CreateElapsedTimeStat(es),
 			CreateLinesStat(es),
 			CreatePiecesStat(es),
