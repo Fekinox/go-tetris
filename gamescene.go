@@ -72,7 +72,7 @@ func (gs *GameScene) HandleAction(act Action) {
 	case Quit:
 		gs.app.OpenMenuScene()
 	case Reset:
-		gs.app.Audio.StopSound("seelremix")
+		// gs.app.Audio.StopSound("seelremix")
 		gs.seed = time.Now().UnixNano()
 		gs.es.HandleReset(gs.seed)
 		gs.objective = gs.objectiveSettings.Init(gs.es)
@@ -105,7 +105,7 @@ func (gs *GameScene) Update() {
 			gs.es.gameStarted = true
 			gs.es.GetRandomPiece()
 
-			gs.app.Audio.PlaySound("seelremix")
+			// gs.app.Audio.PlaySound("seelremix")
 		}
 
 		return
@@ -195,5 +195,5 @@ func (gs *GameScene) DrawProgressBar(anchorX, anchorY int, value float64) {
 }
 
 func (gs *GameScene) Cleanup() {
-	gs.app.Audio.StopSound("seelremix")
+	// gs.app.Audio.StopSound("seelremix")
 }

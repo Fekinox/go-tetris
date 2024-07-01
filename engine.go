@@ -781,8 +781,6 @@ func (es *TetrisField) HardDrop() {
 	es.score += 2 * (int64(es.hardDropHeight) - int64(es.cpY))
 	es.cpY = es.hardDropHeight
 	es.LockPiece()
-
-	es.audio.PlaySound("lock")
 }
 
 func (es *TetrisField) SwapHoldPiece() {
@@ -853,6 +851,8 @@ func (es *TetrisField) LockPiece() {
 		}
 		maxHeight = max(maxHeight, height)
 	}
+
+	es.audio.PlaySound("lock")
 
 	es.maxStackHeight = maxHeight
 
@@ -1020,6 +1020,17 @@ func (es *TetrisField) ClearLines() bool {
 		es.level = (es.lines / 10) + es.startingLevel
 		es.fallRate = es.settings.BaseGravity + es.settings.GravityIncrease*
 			(es.level-1)
+
+		switch len(lines) {
+		case 1:
+			es.audio.PlaySound("score1")
+		case 2:
+			es.audio.PlaySound("score2")
+		case 3:
+			es.audio.PlaySound("score3")
+		case 4:
+			es.audio.PlaySound("score4")
+		}
 	}
 
 	// Scoring
